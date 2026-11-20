@@ -1,139 +1,760 @@
 {
-  "getThptyUcntrctPrdctInfoList": "실패: getThptyUcntrctPrdctInfoList: 재시도 실패 TimeoutError('The read operation timed out')",
-  "getMASCntrctPrdctInfoList": {
-    "rows": 0,
-    "sample_keys": [],
-    "unmapped": [
-      "date",
-      "req_no",
-      "seq",
-      "chg",
-      "org",
-      "org_code",
-      "region",
-      "vendor",
-      "vendor_bizno",
-      "category",
-      "class_name",
-      "item_name",
-      "item_no",
-      "contract_no",
-      "qty",
-      "unit_price",
-      "amount",
-      "excellent",
-      "title"
-    ]
-  },
-  "getUcntrctPrdctInfoList": {
-    "rows": 0,
-    "sample_keys": [],
-    "unmapped": [
-      "date",
-      "req_no",
-      "seq",
-      "chg",
-      "org",
-      "org_code",
-      "region",
-      "vendor",
-      "vendor_bizno",
-      "category",
-      "class_name",
-      "item_name",
-      "item_no",
-      "contract_no",
-      "qty",
-      "unit_price",
-      "amount",
-      "excellent",
-      "title"
-    ]
-  },
-  "getDlvrReqDtlInfoList": {
-    "totalCount_3days": 43008,
-    "sample_keys": [
-      "IntlCntrctDlvrReqDate",
-      "brnofceNm",
-      "cnstwkMtrlDrctPurchsObjYn",
-      "cntrctChgOrd",
-      "cntrctCnclsStleNm",
-      "cntrctCorpBizno",
-      "cntrctNo",
-      "corpEntrprsDivNmNm",
-      "corpNm",
-      "dlvrReqAmt",
-      "dlvrReqChgOrd",
-      "dlvrReqNm",
-      "dlvrReqNo",
-      "dlvrReqQty",
-      "dlvrReqRcptDate",
-      "dlvrTmlmtDate",
-      "dminsttBizno",
-      "dminsttCd",
-      "dminsttNm",
-      "dminsttRgnNm",
-      "dmndInsttDivNm",
-      "dtilPrdctClsfcNo",
-      "dtilPrdctClsfcNoNm",
-      "exclcProdctYn",
-      "fnlDlvrReqYn",
-      "incdecAmt",
-      "incdecQty",
-      "masYn",
-      "optnDivCdNm",
-      "prdctAmt",
-      "prdctClsfcNo",
-      "prdctClsfcNoNm",
-      "prdctIdntNo",
-      "prdctIdntNoNm",
-      "prdctQty",
-      "prdctSno",
-      "prdctUnit",
-      "prdctUprc",
-      "smetprCmptProdctYn"
-    ],
-    "unmapped": [],
-    "first_row": {
-      "dlvrReqNo": "R26TB02494852",
-      "dlvrReqChgOrd": "01",
-      "dlvrReqRcptDate": "2026-11-17",
-      "prdctSno": "1",
-      "prdctClsfcNo": "30222003",
-      "prdctClsfcNoNm": "버스승강장",
-      "dtilPrdctClsfcNo": "3022200301",
-      "dtilPrdctClsfcNoNm": "버스승강장",
-      "prdctIdntNo": "23860341",
-      "prdctIdntNoNm": "버스승강장, 엔담, EB-32, 5010×2000×2850mm",
-      "prdctUprc": "16200000",
-      "prdctUnit": "조",
-      "prdctQty": "14",
-      "prdctAmt": "226800000",
-      "dlvrTmlmtDate": "2026-12-25",
-      "cntrctCnclsStleNm": "제3자단가계약",
-      "exclcProdctYn": "N",
-      "optnDivCdNm": "대표품목",
-      "dminsttCd": "3540000",
-      "dminsttNm": "인천광역시 부평구",
-      "dmndInsttDivNm": "지방정부",
-      "dminsttRgnNm": "인천광역시 부평구",
-      "corpNm": "엔담 주식회사",
-      "fnlDlvrReqYn": "Y",
-      "incdecQty": "2",
-      "incdecAmt": "32400000",
-      "cntrctCorpBizno": "1318612901",
-      "dlvrReqNm": "2026년 버스정류소 한파저감시설(쉘터) 구매ㆍ설치",
-      "cntrctNo": "R26TA01572176",
-      "cntrctChgOrd": "00",
-      "masYn": "Y",
-      "cnstwkMtrlDrctPurchsObjYn": "Y",
-      "IntlCntrctDlvrReqDate": "20261105",
-      "dlvrReqQty": "14",
-      "dlvrReqAmt": "226800000",
-      "smetprCmptProdctYn": "Y",
-      "corpEntrprsDivNmNm": "중소기업",
-      "brnofceNm": "인천지방조달청",
-      "dminsttBizno": "1228300676"
+  "filters": {
+    "prdctIdntNoNm=지슨|last30": {
+      "totalCount": 3,
+      "fetched": 3,
+      "target_rows": 3,
+      "top": [
+        {
+          "vendor": "(주)지슨",
+          "class": "도청방지기",
+          "category": "도청방지기",
+          "n": 3
+        }
+      ],
+      "target_samples": [
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "한국도로공사",
+          "dmndInsttDivNm": "공기업",
+          "dlvrReqRcptDate": "2026-11-06"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "농림축산식품부",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2026-11-11"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "과학기술정보통신부 국립전파연구원",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2026-11-18"
+        }
+      ]
+    },
+    "prdctIdntNoNm=지슨|dec2025": {
+      "totalCount": 3,
+      "fetched": 3,
+      "target_rows": 3,
+      "top": [
+        {
+          "vendor": "(주)지슨",
+          "class": "도청방지기",
+          "category": "도청방지기",
+          "n": 3
+        }
+      ],
+      "target_samples": [
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "국방부 국군조직 드론작전사령부",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-01"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "경찰청 서울특별시경찰청",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-04"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "해병 제9691부대",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-05"
+        }
+      ]
+    },
+    "prdctIdntNoNm=Alpha-C|last30": {
+      "totalCount": 0,
+      "fetched": 0,
+      "target_rows": 0,
+      "top": [],
+      "target_samples": []
+    },
+    "prdctIdntNoNm=Alpha-C|dec2025": {
+      "totalCount": 0,
+      "fetched": 0,
+      "target_rows": 0,
+      "top": [],
+      "target_samples": []
+    },
+    "prdctIdntNoNm=Alpha|last30": {
+      "totalCount": 8,
+      "fetched": 8,
+      "target_rows": 3,
+      "top": [
+        {
+          "vendor": "주식회사 아이엔아이",
+          "class": "경보장치",
+          "category": "비상경보기",
+          "n": 4
+        },
+        {
+          "vendor": "(주)지슨",
+          "class": "도청방지기",
+          "category": "도청방지기",
+          "n": 3
+        },
+        {
+          "vendor": "주식회사 알파비트",
+          "class": "트랜잭션보안및바이러스보호소프트웨어",
+          "category": "보안소프트웨어",
+          "n": 1
+        }
+      ],
+      "target_samples": [
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "한국도로공사",
+          "dmndInsttDivNm": "공기업",
+          "dlvrReqRcptDate": "2026-11-06"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "농림축산식품부",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2026-11-11"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "과학기술정보통신부 국립전파연구원",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2026-11-18"
+        }
+      ]
+    },
+    "prdctIdntNoNm=Alpha|dec2025": {
+      "totalCount": 3,
+      "fetched": 3,
+      "target_rows": 3,
+      "top": [
+        {
+          "vendor": "(주)지슨",
+          "class": "도청방지기",
+          "category": "도청방지기",
+          "n": 3
+        }
+      ],
+      "target_samples": [
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "국방부 국군조직 드론작전사령부",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-01"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "경찰청 서울특별시경찰청",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-04"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "해병 제9691부대",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-05"
+        }
+      ]
+    },
+    "prdctIdntNoNm=알파|last30": {
+      "totalCount": 302,
+      "fetched": 300,
+      "target_rows": 0,
+      "top": [
+        {
+          "vendor": "알파특수콘크리트(주)",
+          "class": "맨홀박스",
+          "category": "콘크리트맨홀블록",
+          "n": 151
+        },
+        {
+          "vendor": "알파레이저",
+          "class": "가로수보호판",
+          "category": "가로수보호판",
+          "n": 44
+        },
+        {
+          "vendor": "(주)알파스캔디스플레이",
+          "class": "LCD패널또는모니터",
+          "category": "액정모니터",
+          "n": 41
+        },
+        {
+          "vendor": "주식회사 서준약품",
+          "class": "치과구강용약",
+          "category": "치과구강용약",
+          "n": 19
+        },
+        {
+          "vendor": "주식회사 알파큐",
+          "class": "금속제창",
+          "category": "금속제창",
+          "n": 14
+        },
+        {
+          "vendor": "알파특수콘크리트(주)",
+          "class": "배수로",
+          "category": "철근콘크리트벤치플룸관",
+          "n": 11
+        },
+        {
+          "vendor": "주식회사 이씨오",
+          "class": "정보검색또는서치소프트웨어",
+          "category": "정보검색소프트웨어",
+          "n": 6
+        },
+        {
+          "vendor": "주식회사 케이씨환경디자인",
+          "class": "의료용살충제",
+          "category": "의료용살충제",
+          "n": 4
+        },
+        {
+          "vendor": "주식회사 한국알파시스템",
+          "class": "영상감시장치",
+          "category": "영상감시장치",
+          "n": 4
+        },
+        {
+          "vendor": "히트러너 주식회사",
+          "class": "살균제",
+          "category": "살균제",
+          "n": 2
+        },
+        {
+          "vendor": "대전세종충남북부레미콘사업협동조합",
+          "class": "레미콘",
+          "category": "레미콘",
+          "n": 1
+        },
+        {
+          "vendor": "봉강친환경영농조합법인",
+          "class": "유기질비료",
+          "category": "유기질비료",
+          "n": 1
+        },
+        {
+          "vendor": "주식회사 누리바이오텍",
+          "class": "토양개량제",
+          "category": "토양개량제",
+          "n": 1
+        },
+        {
+          "vendor": "주식회사 알파비트",
+          "class": "트랜잭션보안및바이러스보호소프트웨어",
+          "category": "보안소프트웨어",
+          "n": 1
+        }
+      ],
+      "target_samples": []
+    },
+    "prdctIdntNoNm=알파|dec2025": {
+      "totalCount": 543,
+      "fetched": 300,
+      "target_rows": 0,
+      "top": [
+        {
+          "vendor": "알파특수콘크리트(주)",
+          "class": "맨홀박스",
+          "category": "콘크리트맨홀블록",
+          "n": 216
+        },
+        {
+          "vendor": "(주)알파스캔디스플레이",
+          "class": "LCD패널또는모니터",
+          "category": "액정모니터",
+          "n": 48
+        },
+        {
+          "vendor": "알파레이저",
+          "class": "가로수보호판",
+          "category": "가로수보호판",
+          "n": 14
+        },
+        {
+          "vendor": "주식회사 인천약품",
+          "class": "치과구강용약",
+          "category": "치과구강용약",
+          "n": 7
+        },
+        {
+          "vendor": "태광메디팜주식회사",
+          "class": "의료용살충제",
+          "category": "의료용살충제",
+          "n": 3
+        },
+        {
+          "vendor": "알파특수콘크리트(주)",
+          "class": "배수로",
+          "category": "철근콘크리트벤치플룸관",
+          "n": 2
+        },
+        {
+          "vendor": "(주)로얄파마",
+          "class": "의료용살충제",
+          "category": "의료용살충제",
+          "n": 2
+        },
+        {
+          "vendor": "주식회사 알파로드",
+          "class": "도로표지병",
+          "category": "도로표지병",
+          "n": 1
+        },
+        {
+          "vendor": "주식회사 한국알파시스템",
+          "class": "영상감시장치",
+          "category": "영상감시장치",
+          "n": 1
+        },
+        {
+          "vendor": "봉강친환경영농조합법인",
+          "class": "유기질비료",
+          "category": "유기질비료",
+          "n": 1
+        },
+        {
+          "vendor": "히트러너 주식회사",
+          "class": "살균제",
+          "category": "살균제",
+          "n": 1
+        },
+        {
+          "vendor": "주식회사 씨엔지",
+          "class": "감염병예방용방역살균소독제",
+          "category": "감염병예방용방역살균소독제",
+          "n": 1
+        },
+        {
+          "vendor": "케이지모빌리티 주식회사",
+          "class": "전기스포츠유틸리티차량",
+          "category": "전기다목적승용차",
+          "n": 1
+        },
+        {
+          "vendor": "주식회사 이씨오",
+          "class": "정보검색또는서치소프트웨어",
+          "category": "정보검색소프트웨어",
+          "n": 1
+        },
+        {
+          "vendor": "코나（CONA）",
+          "class": "보조사료",
+          "category": "보조사료",
+          "n": 1
+        }
+      ],
+      "target_samples": []
+    },
+    "prdctClsfcNoNm=불법촬영|last30": {
+      "totalCount": 33,
+      "fetched": 33,
+      "target_rows": 0,
+      "top": [
+        {
+          "vendor": "주식회사 이너트론",
+          "class": "불법촬영카메라탐지기",
+          "category": "불법촬영카메라탐지기",
+          "n": 33
+        }
+      ],
+      "target_samples": []
+    },
+    "prdctClsfcNoNm=불법촬영|dec2025": {
+      "totalCount": 0,
+      "fetched": 0,
+      "target_rows": 0,
+      "top": [],
+      "target_samples": []
+    },
+    "prdctClsfcNoNm=도청|last30": {
+      "totalCount": 3,
+      "fetched": 3,
+      "target_rows": 3,
+      "top": [
+        {
+          "vendor": "(주)지슨",
+          "class": "도청방지기",
+          "category": "도청방지기",
+          "n": 3
+        }
+      ],
+      "target_samples": [
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "한국도로공사",
+          "dmndInsttDivNm": "공기업",
+          "dlvrReqRcptDate": "2026-11-06"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "농림축산식품부",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2026-11-11"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "과학기술정보통신부 국립전파연구원",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2026-11-18"
+        }
+      ]
+    },
+    "prdctClsfcNoNm=도청|dec2025": {
+      "totalCount": 3,
+      "fetched": 3,
+      "target_rows": 3,
+      "top": [
+        {
+          "vendor": "(주)지슨",
+          "class": "도청방지기",
+          "category": "도청방지기",
+          "n": 3
+        }
+      ],
+      "target_samples": [
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "국방부 국군조직 드론작전사령부",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-01"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "경찰청 서울특별시경찰청",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-04"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "해병 제9691부대",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-05"
+        }
+      ]
+    },
+    "prdctClsfcNoNm=탐지|last30": {
+      "totalCount": 73,
+      "fetched": 73,
+      "target_rows": 0,
+      "top": [
+        {
+          "vendor": "주식회사 이너트론",
+          "class": "불법촬영카메라탐지기",
+          "category": "불법촬영카메라탐지기",
+          "n": 33
+        },
+        {
+          "vendor": "주식회사 에이치케이시스템",
+          "class": "융복합감시및탐지장비",
+          "category": "융복합비상벨",
+          "n": 31
+        },
+        {
+          "vendor": "주식회사 이레씨즈",
+          "class": "융복합감시및탐지장비",
+          "category": "융복합비상벨",
+          "n": 7
+        },
+        {
+          "vendor": "주식회사센텍",
+          "class": "융복합감시및탐지장비",
+          "category": "융복합영상감시장치",
+          "n": 2
+        }
+      ],
+      "target_samples": []
+    },
+    "prdctClsfcNoNm=탐지|dec2025": {
+      "totalCount": 28,
+      "fetched": 28,
+      "target_rows": 0,
+      "top": [
+        {
+          "vendor": "주식회사 에이치케이시스템",
+          "class": "융복합감시및탐지장비",
+          "category": "융복합비상벨",
+          "n": 18
+        },
+        {
+          "vendor": "주식회사 세렉스",
+          "class": "융복합감시및탐지장비",
+          "category": "융복합비상경보기",
+          "n": 9
+        },
+        {
+          "vendor": "주식회사센텍",
+          "class": "융복합감시및탐지장비",
+          "category": "융복합영상감시장치",
+          "n": 1
+        }
+      ],
+      "target_samples": []
+    },
+    "dtilPrdctClsfcNoNm=불법촬영|last30": "실패: getDlvrReqDtlInfoList: 재시도 실패 URLError(TimeoutError('_ssl.c:994: The handshake operation timed out'))",
+    "dtilPrdctClsfcNoNm=불법촬영|dec2025": {
+      "totalCount": 0,
+      "fetched": 0,
+      "target_rows": 0,
+      "top": [],
+      "target_samples": []
+    },
+    "dtilPrdctClsfcNoNm=도청|last30": {
+      "totalCount": 3,
+      "fetched": 3,
+      "target_rows": 3,
+      "top": [
+        {
+          "vendor": "(주)지슨",
+          "class": "도청방지기",
+          "category": "도청방지기",
+          "n": 3
+        }
+      ],
+      "target_samples": [
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "한국도로공사",
+          "dmndInsttDivNm": "공기업",
+          "dlvrReqRcptDate": "2026-11-06"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "농림축산식품부",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2026-11-11"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "과학기술정보통신부 국립전파연구원",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2026-11-18"
+        }
+      ]
+    },
+    "dtilPrdctClsfcNoNm=도청|dec2025": {
+      "totalCount": 3,
+      "fetched": 3,
+      "target_rows": 3,
+      "top": [
+        {
+          "vendor": "(주)지슨",
+          "class": "도청방지기",
+          "category": "도청방지기",
+          "n": 3
+        }
+      ],
+      "target_samples": [
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "국방부 국군조직 드론작전사령부",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-01"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "경찰청 서울특별시경찰청",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-04"
+        },
+        {
+          "corpNm": "(주)지슨",
+          "prdctClsfcNoNm": "도청방지기",
+          "dtilPrdctClsfcNoNm": "도청방지기",
+          "prdctIdntNoNm": "도청방지기, 지슨, Alpha-I, 도청탐지",
+          "cntrctNo": "R25TA00461341",
+          "prdctUprc": "15200000",
+          "dminsttNm": "해병 제9691부대",
+          "dmndInsttDivNm": "국가기관",
+          "dlvrReqRcptDate": "2025-12-05"
+        }
+      ]
+    },
+    "dtilPrdctClsfcNoNm=탐지|last30": "실패: getDlvrReqDtlInfoList: 재시도 실패 URLError(TimeoutError('_ssl.c:994: The handshake operation timed out'))",
+    "dtilPrdctClsfcNoNm=탐지|dec2025": {
+      "totalCount": 0,
+      "fetched": 0,
+      "target_rows": 0,
+      "top": [],
+      "target_samples": []
     }
+  },
+  "contract_ops": {
+    "getThptyUcntrctPrdctInfoList|지슨|v0": "실패: getThptyUcntrctPrdctInfoList: 재시도 실패 TimeoutError('The read operation timed out')",
+    "getThptyUcntrctPrdctInfoList|지슨|v1": {
+      "totalCount": 0,
+      "keys": [],
+      "first": null
+    },
+    "getThptyUcntrctPrdctInfoList|지슨|v2": {
+      "totalCount": 0,
+      "keys": [],
+      "first": null
+    },
+    "getMASCntrctPrdctInfoList|지슨|v0": {
+      "totalCount": 0,
+      "keys": [],
+      "first": null
+    },
+    "getMASCntrctPrdctInfoList|지슨|v1": {
+      "totalCount": 0,
+      "keys": [],
+      "first": null
+    },
+    "getMASCntrctPrdctInfoList|지슨|v2": {
+      "totalCount": 0,
+      "keys": [],
+      "first": null
+    },
+    "getUcntrctPrdctInfoList|지슨|v0": {
+      "totalCount": 0,
+      "keys": [],
+      "first": null
+    },
+    "getUcntrctPrdctInfoList|지슨|v1": {
+      "totalCount": 0,
+      "keys": [],
+      "first": null
+    },
+    "getUcntrctPrdctInfoList|지슨|v2": {
+      "totalCount": 0,
+      "keys": [],
+      "first": null
+    }
+  },
+  "page_size_test": {
+    "asked": 999,
+    "got": 999,
+    "totalCount_1day": 13621
+  },
+  "found": {
+    "contract_numbers": [
+      "R25TA00461341"
+    ],
+    "category_names": [
+      "도청방지기"
+    ],
+    "item_keywords": [
+      "Alpha",
+      "지슨"
+    ],
+    "api_calls": 30
   }
 }
