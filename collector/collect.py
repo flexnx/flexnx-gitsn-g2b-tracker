@@ -45,6 +45,8 @@ FIELDS = {
     "amount": ["prdctAmt", "dlvrReqPrdctAmt"],
     "excellent": ["exclcProdctYn", "exclntPrdctYn"],
     "title": ["dlvrReqNm", "reqNm"],
+    "org_div": ["dmndInsttDivNm"],
+    "final": ["fnlDlvrReqYn"],
 }
 
 
@@ -65,7 +67,7 @@ def num(v):
         return 0.0
 
 
-def call(operation, params):
+def call(operation, params, timeout=90, tries=3):
     """한 페이지 호출. (items, totalCount) 반환."""
     key = os.environ.get("DATA_GO_KR_KEY")
     if not key:
@@ -75,10 +77,10 @@ def call(operation, params):
     q = {"serviceKey": key, "type": "json", **params}
     url = f'{CFG["base_url"]}/{operation}?{urllib.parse.urlencode(q)}'
     last = None
-    for attempt in range(4):
+    for attempt in range(tries):
         CALLS["n"] += 1
         try:
-            with urllib.request.urlopen(url, timeout=60) as r:
+            with urllib.request.urlopen(url, timeout=timeout) as r:
                 text = r.read().decode("utf-8", "replace")
         except (urllib.error.URLError, TimeoutError) as e:
             last = repr(e)
@@ -144,8 +146,20 @@ ORG_RULES = [
 ]
 
 
-def org_type(name):
-    n = name or ""
+def org_type(name, div=""):
+    """기관명에 학교·교육청·경찰이 보이면 그쪽으로, 아니면 API의 수요기관구분을 따른다."""
+    n, d = name or "", div or ""
+    for label, pat in ORG_RULES[:2]:
+        if re.search(pat, n):
+            return label
+    if "교육" in d:
+        return "교육기관"
+    if "지방" in d or "지자체" in d:
+        return "지자체"
+    if "국가" in d or "중앙" in d:
+        return "중앙부처"
+    if re.search("공기업|준정부|공공|출연|출자", d):
+        return "공공기관"
     for label, pat in ORG_RULES:
         if re.search(pat, n):
             return label
@@ -185,7 +199,9 @@ def normalize(item):
         "seq": str(pick(item, "seq") or "1"),
         "chg": int(num(pick(item, "chg"))),
         "org": org,
-        "org_type": org_type(org),
+        "org_type": org_type(org, pick(item, "org_div")),
+        "org_div": pick(item, "org_div") or "",
+        "title": pick(item, "title") or "",
         "region": pick(item, "region") or "",
         "vendor": vendor,
         "is_target": is_target(vendor),
@@ -209,44 +225,90 @@ def field_report(items):
 
 
 # ---------- probe ----------
+def _summ(items, total):
+    mine = [it for it in items if is_target(pick(it, "vendor"))]
+    combos = {}
+    for it in items:
+        k = (pick(it, "vendor"), pick(it, "class_name"), pick(it, "category"))
+        combos[k] = combos.get(k, 0) + 1
+    top = sorted(combos.items(), key=lambda x: -x[1])[:15]
+    return {"totalCount": total, "fetched": len(items), "target_rows": len(mine),
+            "top": [{"vendor": k[0], "class": k[1], "category": k[2], "n": n} for k, n in top],
+            "target_samples": [
+                {x: it.get(x) for x in ("corpNm", "prdctClsfcNoNm", "dtilPrdctClsfcNoNm",
+                                         "prdctIdntNoNm", "cntrctNo", "prdctUprc", "dminsttNm",
+                                         "dmndInsttDivNm", "dlvrReqRcptDate")}
+                for it in mine[:8]]}
+
+
 def probe():
-    found_contracts, found_categories, report = set(), set(), {}
-    for op in CFG["operations"]["contract_items"]:
-        for name in CFG["company_names"]:
-            try:
-                items = list(paged(op, {"inqryDiv": 1, "cntrctCorpNm": name}))
-            except RuntimeError as e:
-                report[op] = f"실패: {e}"
-                continue
-            report[op] = {"rows": len(items), **field_report(items)}
-            for it in items:
-                if not is_target(pick(it, "vendor") or name):
-                    continue
-                if pick(it, "contract_no"):
-                    found_contracts.add(str(pick(it, "contract_no")))
-                if pick(it, "category"):
-                    found_categories.add(pick(it, "category"))
-    # 납품요구 상세 응답 필드 확인(최근 7일 아무 데이터)
-    end = dt.date.today() - dt.timedelta(days=1)
+    """어떤 조회 조건으로 지슨 납품요구를 뽑을 수 있는지 시험한다."""
     op = CFG["operations"]["delivery_detail"]
+    end = dt.date.today() - dt.timedelta(days=1)
+    wins = {"last30": (end - dt.timedelta(days=29), end),
+            "dec2025": (dt.date(2025, 12, 1), dt.date(2025, 12, 31))}
+    tests = [("prdctIdntNoNm", v) for v in ("지슨", "Alpha-C", "Alpha", "알파")] + \
+            [("prdctClsfcNoNm", v) for v in ("불법촬영", "도청", "탐지")] + \
+            [("dtilPrdctClsfcNoNm", v) for v in ("불법촬영", "도청", "탐지")]
+    report, contracts, cats, keywords = {"filters": {}, "contract_ops": {}}, set(), set(), set()
+    for pname, pval in tests:
+        for wname, (a, b) in wins.items():
+            key = f"{pname}={pval}|{wname}"
+            try:
+                items, total = call(op, {
+                    "inqryDiv": 1, "inqryBgnDate": ymd(a), "inqryEndDate": ymd(b),
+                    pname: pval, "pageNo": 1, "numOfRows": 300}, timeout=60, tries=1)
+            except RuntimeError as e:
+                report["filters"][key] = f"실패: {e}"
+                continue
+            report["filters"][key] = _summ(items, total)
+            for it in items:
+                if is_target(pick(it, "vendor")):
+                    contracts.add(str(pick(it, "contract_no")))
+                    cats.add(pick(it, "category"))
+                    if pname == "prdctIdntNoNm" and total < 5000:
+                        keywords.add(pval)
+    # 페이지 크기 상한
     try:
-        items, total = call(op, {
-            "inqryDiv": 1, "inqryBgnDate": ymd(end - dt.timedelta(days=2)),
-            "inqryEndDate": ymd(end), "pageNo": 1, "numOfRows": 20})
-        report[op] = {"totalCount_3days": total, **field_report(items),
-                      "first_row": items[0] if items else None}
+        items, total = call(op, {"inqryDiv": 1, "inqryBgnDate": ymd(end), "inqryEndDate": ymd(end),
+                                 "pageNo": 1, "numOfRows": 999}, timeout=60, tries=1)
+        report["page_size_test"] = {"asked": 999, "got": len(items), "totalCount_1day": total}
     except RuntimeError as e:
-        report[op] = f"실패: {e}"
-    CFG["contract_numbers"] = sorted(set(CFG["contract_numbers"]) | found_contracts)
-    CFG["category_names"] = sorted(set(CFG["category_names"]) | found_categories)
+        report["page_size_test"] = f"실패: {e}"
+    # 계약 품목 조회(업체명) — 날짜 조건 후보를 바꿔가며 시험
+    date_variants = [{}, {"rgstDtBgnDt": "202001010000", "rgstDtEndDt": ymd(end) + "2359"},
+                     {"chgDtBgnDt": "202001010000", "chgDtEndDt": ymd(end) + "2359"}]
+    for cop in CFG["operations"]["contract_items"]:
+        for name in ("지슨",):
+            for i, dv in enumerate(date_variants):
+                key = f"{cop}|{name}|v{i}"
+                try:
+                    items, total = call(cop, {"inqryDiv": 2 if i == 2 else 1, "cntrctCorpNm": name,
+                                              "pageNo": 1, "numOfRows": 100, **dv},
+                                        timeout=60, tries=1)
+                except RuntimeError as e:
+                    report["contract_ops"][key] = f"실패: {str(e)[:160]}"
+                    continue
+                report["contract_ops"][key] = {
+                    "totalCount": total, "keys": sorted({k for it in items[:20] for k in it}),
+                    "first": items[0] if items else None}
+                for it in items:
+                    if pick(it, "contract_no"):
+                        contracts.add(str(pick(it, "contract_no")))
+                    if pick(it, "category"):
+                        cats.add(pick(it, "category"))
+    contracts.discard("None"); cats.discard(None)
+    CFG["contract_numbers"] = sorted(set(CFG["contract_numbers"]) | contracts)
+    CFG["category_names"] = sorted(set(CFG["category_names"]) | cats)
+    CFG["item_keywords"] = sorted(set(CFG.get("item_keywords", [])) | keywords)
+    report["found"] = {"contract_numbers": CFG["contract_numbers"],
+                       "category_names": CFG["category_names"],
+                       "item_keywords": CFG["item_keywords"], "api_calls": CALLS["n"]}
     CFG_PATH.write_text(json.dumps(CFG, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     DATA.mkdir(parents=True, exist_ok=True)
     (DATA / "probe.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps(report, ensure_ascii=False, indent=2))
-    print("\n계약번호:", CFG["contract_numbers"])
-    print("세부품명:", CFG["category_names"])
-    print(f"API 호출 {CALLS['n']}회. config.json 을 갱신했습니다.")
+    print(json.dumps(report["found"], ensure_ascii=False, indent=2))
 
 
 # ---------- collect ----------
@@ -264,9 +326,10 @@ def collect():
     refresh_from = end - dt.timedelta(days=CFG["refresh_days"])
     op = CFG["operations"]["delivery_detail"]
     queries = [("cntrctNo", c) for c in CFG["contract_numbers"]] + \
-              [("dtilPrdctClsfcNoNm", c) for c in CFG["category_names"]]
+              [("dtilPrdctClsfcNoNm", c) for c in CFG["category_names"]] + \
+              [("prdctIdntNoNm", c) for c in CFG.get("item_keywords", [])]
     if not queries:
-        sys.exit("config.json 에 contract_numbers / category_names 가 없습니다. 먼저 probe 를 실행하세요.")
+        sys.exit("config.json 에 조회 조건이 없습니다. 먼저 probe 를 실행하세요.")
     raw_seen, budget_hit, misses = 0, False, set()
     for pname, pval in queries:
         qkey = f"{pname}={pval}"
