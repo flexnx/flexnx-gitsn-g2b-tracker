@@ -8,7 +8,9 @@
     ],
     "delivery_detail": "getDlvrReqDtlInfoList"
   },
-  "company_names": ["지슨"],
+  "company_names": [
+    "지슨"
+  ],
   "start_date": "2023-01-01",
   "refresh_days": 60,
   "window_days": 31,
