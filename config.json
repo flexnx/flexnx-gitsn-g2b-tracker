@@ -17,13 +17,13 @@
   "rows_per_page": 500,
   "max_calls_per_run": 800,
   "category_names": [
-    "도청방지기"
+    "도청방지기",
+    "불법촬영카메라탐지기"
   ],
   "contract_numbers": [
     "R25TA00461341"
   ],
   "item_keywords": [
-    "Alpha",
     "지슨"
   ]
 }
