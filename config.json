@@ -1,0 +1,19 @@
+{
+  "base_url": "https://apis.data.go.kr/1230000/at/ShoppingMallPrdctInfoService",
+  "operations": {
+    "contract_items": [
+      "getThptyUcntrctPrdctInfoList",
+      "getMASCntrctPrdctInfoList",
+      "getUcntrctPrdctInfoList"
+    ],
+    "delivery_detail": "getDlvrReqDtlInfoList"
+  },
+  "company_names": ["지슨"],
+  "start_date": "2023-01-01",
+  "refresh_days": 60,
+  "window_days": 31,
+  "rows_per_page": 500,
+  "max_calls_per_run": 800,
+  "category_names": [],
+  "contract_numbers": []
+}

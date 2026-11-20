@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>지슨 공공조달 트래커</title>
+<style>
+:root{color-scheme:light;--bg:#f4f3f0;--surface:#fcfcfb;--line:#e4e2dc;--text:#0b0b0b;--text2:#52514e;--muted:#85837c;
+--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--good:#0b7a3b;--bad:#b3261e;--warnbg:#fff4d6;--warnline:#e2b93b}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#111110;--surface:#1a1a19;--line:#30302d;--text:#f0efec;--text2:#c3c2b7;--muted:#8f8e86;
+--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#0ca30c;--good:#4cc27f;--bad:#f08a80;--warnbg:#3a3118;--warnline:#8a6d14}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em}
+h2{font-size:15px;margin:0 0 2px}
+.sub{color:var(--text2);font-size:13px}
+.banner{background:var(--warnbg);border:1px solid var(--warnline);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:13px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0 14px}
+.filters label{color:var(--text2);font-size:13px}
+select{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(4,1fr)}
+.two{grid-template-columns:3fr 2fr}
+@media (max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-width:0}
+.kpi .label{color:var(--text2);font-size:13px}
+.kpi .val{font-size:28px;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .note{font-size:12.5px;color:var(--text2)}
+.up{color:var(--good)}.down{color:var(--bad)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 0 2px;font-size:12.5px;color:var(--text2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.gridline{stroke:var(--line);stroke-width:1}
+.hit{fill:transparent;cursor:default}
+#tip{position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.14);display:none;z-index:9;min-width:150px}
+#tip b{display:block;margin-bottom:3px}
+#tip .r{display:flex;justify-content:space-between;gap:14px;color:var(--text2)}
+#tip .r span:last-child{color:var(--text);font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--text2);font-weight:500;font-size:12px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+details{margin-top:10px}summary{cursor:pointer;color:var(--text2);font-size:13px}
+.hbar{display:grid;grid-template-columns:minmax(90px,150px) 1fr auto;gap:8px;align-items:center;margin:7px 0;font-size:13px}
+.hbar .track{height:14px}.hbar .fill{height:14px;border-radius:0 4px 4px 0;background:var(--s1);min-width:2px}
+.hbar .v{font-variant-numeric:tabular-nums;color:var(--text2)}
+.empty{color:var(--muted);padding:24px 0;text-align:center}
+footer{color:var(--muted);font-size:12px;margin-top:22px}
+</style>
+</head>
+<body>
+<main>
+  <h1>지슨 공공조달 트래커</h1>
+  <div class="sub" id="stamp">불러오는 중…</div>
+  <div id="banners"></div>
+  <div class="filters">
+    <label for="fam">제품군</label>
+    <select id="fam"><option value="">전체</option></select>
+    <label for="otype">수요기관 유형</label>
+    <select id="otype"><option value="">전체</option></select>
+  </div>
+  <section class="grid kpis" id="kpis"></section>
+  <section class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>월별 납품요구액 (지슨, 최근 24개월)</h2>
+      <div class="sub">수요기관 유형별, 억 원</div>
+      <div class="legend" id="lg1"></div>
+      <div id="c1"></div>
+      <details><summary>표로 보기</summary><div class="scroll" id="t1"></div></details>
+    </div>
+    <div class="card">
+      <h2>연간 누적 납품요구액 (지슨)</h2>
+      <div class="sub">1월 1일부터 누적, 억 원</div>
+      <div class="legend" id="lg2"></div>
+      <div id="c2"></div>
+    </div>
+  </section>
+  <section class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>최근 납품요구 (지슨)</h2>
+      <div class="scroll" id="recent"></div>
+    </div>
+    <div class="card">
+      <h2>업체별 납품요구액 (최근 12개월)</h2>
+      <div class="sub">같은 세부품명으로 수집된 전체 업체, 억 원</div>
+      <div id="share"></div>
+      <h2 style="margin-top:18px">상위 수요기관 (지슨, 최근 12개월)</h2>
+      <div id="toporg"></div>
+    </div>
+  </section>
+  <footer>출처: 조달청 나라장터쇼핑몰 납품요구 상세(공공데이터포털 오픈API). 납품요구 접수일 기준이며 매출 인식 시점과 다릅니다. 민간(B2B)·수출·쇼핑몰 외 계약은 포함되지 않습니다.</footer>
+</main>
+<div id="tip"></div>
+<script>
+const TYPES=["교육기관","지자체","중앙부처","경찰·사법","공공기관","기타"];
+const COLOR=Object.fromEntries(TYPES.map((t,i)=>[t,`var(--s${i+1})`]));
+const $=id=>document.getElementById(id);
+const eok=v=>v/1e8;
+const f1=v=>(Math.abs(v)>=100?Math.round(v).toLocaleString():v.toFixed(1));
+const won=v=>v>=1e8?f1(eok(v))+"억":Math.round(v/1e4).toLocaleString()+"만";
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sum=(a,f=r=>r.amount)=>a.reduce((s,r)=>s+f(r),0);
+let ALL=[],META={};
+const tip=$("tip");
+function showTip(e,html){tip.innerHTML=html;tip.style.display="block";
+  const w=tip.offsetWidth,h=tip.offsetHeight;let x=e.clientX+14,y=e.clientY+14;
+  if(x+w>innerWidth-8)x=e.clientX-w-14;if(y+h>innerHeight-8)y=e.clientY-h-14;
+  tip.style.left=x+"px";tip.style.top=y+"px"}
+function hideTip(){tip.style.display="none"}
+function nt(max){const m=max/Math.pow(10,Math.floor(Math.log10(max)));return Math.abs(m-2)<1e-9?4:5}
+function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const m=v/p;return (m<=1?1:m<=2?2:m<=5?5:10)*p}
+
+Promise.all([fetch("data/deliveries.json").then(r=>r.json()),fetch("data/meta.json").then(r=>r.json())])
+.then(([d,m])=>{ALL=d;META=m;init()}).catch(e=>{$("stamp").textContent="데이터를 불러오지 못했습니다: "+e.message});
+
+function init(){
+  $("stamp").textContent=`데이터 기준일 ${META.data_through} · 갱신 ${String(META.updated_at).replace("T"," ").slice(0,16)} · 지슨 ${META.target_rows.toLocaleString()}건 / 전체 ${META.rows.toLocaleString()}건`;
+  const b=[];
+  if(META.sample)b.push("<b>샘플 데이터입니다.</b> 화면 확인용으로 만든 가짜 수치이며 실제 지슨 실적이 아닙니다. 인증키를 등록하고 수집기를 돌리면 실제 데이터로 바뀝니다.");
+  if(META.backfill_incomplete)b.push("과거 데이터 백필이 아직 끝나지 않았습니다(일일 호출 한도). 며칠에 걸쳐 자동으로 채워집니다.");
+  if((META.unmapped_fields||[]).some(f=>["date","org","vendor","qty","unit_price"].includes(f)))b.push("핵심 응답 필드를 찾지 못했습니다: "+META.unmapped_fields.join(", ")+". data/probe.json 을 보고 collect.py 의 FIELDS 를 고쳐야 합니다.");
+  $("banners").innerHTML=b.map(t=>`<div class="banner">${t}</div>`).join("");
+  const fams=[...new Set(ALL.filter(r=>r.is_target).map(r=>r.family))].sort();
+  $("fam").insertAdjacentHTML("beforeend",fams.map(f=>`<option>${esc(f)}</option>`).join(""));
+  $("otype").insertAdjacentHTML("beforeend",TYPES.map(f=>`<option>${f}</option>`).join(""));
+  $("fam").onchange=$("otype").onchange=render;render();
+}
+
+function render(){
+  const fam=$("fam").value,ot=$("otype").value;
+  const base=ALL.filter(r=>(!fam||r.family===fam)&&(!ot||r.org_type===ot));
+  const mine=base.filter(r=>r.is_target);
+  const end=new Date(META.data_through+"T00:00:00");
+  const Y=end.getFullYear(),md=META.data_through.slice(5);
+  const ytd=mine.filter(r=>r.date.slice(0,4)==Y);
+  const pytd=mine.filter(r=>r.date.slice(0,4)==Y-1&&r.date.slice(5)<=md);
+  const d90=new Date(end);d90.setDate(d90.getDate()-89);const d180=new Date(end);d180.setDate(d180.getDate()-179);
+  const iso=d=>d.toISOString().slice(0,10);const loc=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4);
+  const s90=iso(loc(d90)),s180=iso(loc(d180));
+  const r90=mine.filter(r=>r.date>=s90),p90=mine.filter(r=>r.date>=s180&&r.date<s90);
+  const first={};mine.forEach(r=>{if(!first[r.org]||r.date<first[r.org])first[r.org]=r.date});
+  const newOrgs=Object.values(first).filter(d=>d.slice(0,4)==Y).length;
+  const allOrgs=new Set(ytd.map(r=>r.org)).size;
+  const edu=sum(ytd.filter(r=>r.org_type==="교육기관")),tot=sum(ytd);
+  const pEdu=sum(pytd.filter(r=>r.org_type==="교육기관")),pTot=sum(pytd);
+  const delta=(a,b)=>b>0?`<span class="${a>=b?"up":"down"}">${a>=b?"▲":"▼"} ${Math.abs((a/b-1)*100).toFixed(0)}%</span>`:"<span>비교 없음</span>";
+  $("kpis").innerHTML=[
+    ["올해 누적 납품요구액",won(tot),`전년 동기 ${won(pTot)} · ${delta(tot,pTot)}`],
+    ["최근 90일",won(sum(r90)),`직전 90일 ${won(sum(p90))} · ${delta(sum(r90),sum(p90))}`],
+    ["교육기관 비중 (올해)",tot?(edu/tot*100).toFixed(0)+"%":"–",`${won(edu)} · 전년 동기 ${pTot?(pEdu/pTot*100).toFixed(0)+"%":"–"}`],
+    ["신규 수요기관 (올해)",newOrgs+"곳",`올해 주문 기관 ${allOrgs}곳 중`],
+  ].map(k=>`<div class="card kpi"><div class="label">${k[0]}</div><div class="val">${k[1]}</div><div class="note">${k[2]}</div></div>`).join("");
+  monthly(mine,end);cumulative(mine,Y,end);recent(mine);share(base,end);toporg(mine,end);
+}
+
+function monthly(rows,end){
+  const months=[];for(let i=23;i>=0;i--){const d=new Date(end.getFullYear(),end.getMonth()-i,1);months.push(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"))}
+  const agg=Object.fromEntries(months.map(m=>[m,Object.fromEntries(TYPES.map(t=>[t,0]))]));
+  rows.forEach(r=>{const m=r.date.slice(0,7);if(agg[m])agg[m][r.org_type]+=r.amount});
+  const used=TYPES.filter(t=>months.some(m=>agg[m][t]>0));
+  $("lg1").innerHTML=used.map(t=>`<span><i style="background:${COLOR[t]}"></i>${t}</span>`).join("");
+  const W=680,H=280,L=38,R=8,T=10,B=26,pw=W-L-R,ph=H-T-B;
+  const totals=months.map(m=>sum(used,t=>agg[m][t]));const max=niceMax(eok(Math.max(...totals,1)));
+  if(!rows.length){$("c1").innerHTML='<div class="empty">해당 조건의 데이터가 없습니다.</div>';$("t1").innerHTML="";return}
+  const bw=pw/months.length,w=Math.min(18,bw-4);let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="월별 납품요구액 누적 막대">`;
+  for(let i=0,n=nt(max);i<=n;i++){const v=max*i/n,y=T+ph-ph*i/n;s+=`<line class="gridline" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text x="${L-6}" y="${y+4}" text-anchor="end">${f1(v)}</text>`}
+  months.forEach((m,i)=>{const x=L+bw*i+(bw-w)/2;let y=T+ph;const segs=used.filter(t=>agg[m][t]>0);
+    segs.forEach((t,j)=>{const h=eok(agg[m][t])/max*ph;const top=j===segs.length-1;const hh=Math.max(h-(top?0:2),1);y-=h;
+      const r=top?Math.min(4,hh/2,w/2):0;
+      s+=`<path fill="${COLOR[t]}" d="M${x},${y+hh}V${y+r}q0,${-r} ${r},${-r}h${w-2*r}q${r},0 ${r},${r}V${y+hh}z"/>`});
+    if(m.slice(5)==="01")s+=`<text x="${x+w/2}" y="${H-6}" text-anchor="middle">${m.slice(2,4)}.${m.slice(5)}</text>`;
+    else if(+m.slice(5)%3===1)s+=`<text x="${x+w/2}" y="${H-6}" text-anchor="middle">${+m.slice(5)}월</text>`;
+    s+=`<rect class="hit" data-m="${m}" x="${L+bw*i}" y="${T}" width="${bw}" height="${ph}"/>`});
+  s+="</svg>";$("c1").innerHTML=s;
+  $("c1").querySelectorAll(".hit").forEach(el=>{el.onmousemove=e=>{const m=el.dataset.m;
+    showTip(e,`<b>${m}</b>`+used.filter(t=>agg[m][t]>0).reverse().map(t=>`<div class="r"><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${COLOR[t]};margin-right:5px"></i>${t}</span><span>${won(agg[m][t])}</span></div>`).join("")+`<div class="r"><span>합계</span><span>${won(sum(used,t=>agg[m][t]))}</span></div>`)};el.onmouseleave=hideTip});
+  $("t1").innerHTML=`<table><tr><th>월</th>${used.map(t=>`<th class="n">${t}</th>`).join("")}<th class="n">합계</th></tr>`+months.slice().reverse().map(m=>`<tr><td>${m}</td>${used.map(t=>`<td class="n">${f1(eok(agg[m][t]))}</td>`).join("")}<td class="n">${f1(eok(sum(used,t=>agg[m][t])))}</td></tr>`).join("")+"</table>";
+}
+
+function cumulative(rows,Y,end){
+  const doy=d=>Math.floor((new Date(d+"T00:00:00")-new Date(d.slice(0,4)+"-01-01T00:00:00"))/864e5);
+  const series=[Y-1,Y].map(y=>{const a=new Array(366).fill(0);rows.filter(r=>r.date.slice(0,4)==y).forEach(r=>a[doy(r.date)]+=r.amount);
+    let c=0;const last=y===Y?doy(META.data_through):365;return{y,pts:a.slice(0,last+1).map(v=>eok(c+=v))}});
+  const W=440,H=280,L=38,R=44,T=10,B=26,pw=W-L-R,ph=H-T-B;
+  const max=niceMax(Math.max(...series.flatMap(s=>s.pts),1));
+  const X=i=>L+pw*i/365,Yp=v=>T+ph-ph*v/max;
+  const col={[Y]:"var(--s1)",[Y-1]:"var(--muted)"};
+  $("lg2").innerHTML=series.slice().reverse().map(s=>`<span><i style="background:${col[s.y]}"></i>${s.y}년</span>`).join("");
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="연간 누적 납품요구액">`;
+  for(let i=0,n=nt(max);i<=n;i++){const v=max*i/n,y=Yp(v);s+=`<line class="gridline" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text x="${L-6}" y="${y+4}" text-anchor="end">${f1(v)}</text>`}
+  [0,3,6,9].forEach(m=>{const i=doy(`2025-${String(m+1).padStart(2,"0")}-01`);s+=`<text x="${X(i)}" y="${H-6}">${m+1}월</text>`});
+  series.forEach(se=>{s+=`<path fill="none" stroke="${col[se.y]}" stroke-width="2" stroke-linejoin="round" d="M${se.pts.map((v,i)=>X(i).toFixed(1)+","+Yp(v).toFixed(1)).join("L")}"/>`;
+    const li=se.pts.length-1;s+=`<circle cx="${X(li)}" cy="${Yp(se.pts[li])}" r="4" fill="${col[se.y]}" stroke="var(--surface)" stroke-width="2"/><text x="${Math.min(X(li)+7,W-R+2)}" y="${Yp(se.pts[li])+(se.y===Y?16:-8)}" style="fill:var(--text2)">${String(se.y).slice(2)}년 ${f1(se.pts[li])}</text>`});
+  s+=`<line id="xh" class="gridline" y1="${T}" y2="${T+ph}" style="display:none;stroke:var(--muted)"/><rect class="hit" x="${L}" y="${T}" width="${pw}" height="${ph}"/></svg>`;
+  $("c2").innerHTML=s;const hit=$("c2").querySelector(".hit"),xh=$("c2").querySelector("#xh");
+  hit.onmousemove=e=>{const b=hit.getBoundingClientRect();const i=Math.max(0,Math.min(365,Math.round((e.clientX-b.left)/b.width*365)));
+    xh.setAttribute("x1",X(i));xh.setAttribute("x2",X(i));xh.style.display="";
+    const d=new Date(2025,0,1+i);showTip(e,`<b>${d.getMonth()+1}월 ${d.getDate()}일까지</b>`+series.slice().reverse().map(se=>`<div class="r"><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${col[se.y]};margin-right:5px"></i>${se.y}년</span><span>${i<se.pts.length?f1(se.pts[i])+"억":"–"}</span></div>`).join(""))};
+  hit.onmouseleave=()=>{hideTip();xh.style.display="none"};
+}
+
+function recent(rows){
+  const r=rows.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25);
+  $("recent").innerHTML=r.length?`<table><tr><th>접수일</th><th>수요기관</th><th>유형</th><th>품목</th><th class="n">수량</th><th class="n">금액</th></tr>`+r.map(x=>`<tr><td>${x.date}</td><td>${esc(x.org)}</td><td>${x.org_type}</td><td>${esc(x.item_name||x.category)}</td><td class="n">${x.qty.toLocaleString()}</td><td class="n">${won(x.amount)}</td></tr>`).join("")+"</table>":'<div class="empty">데이터가 없습니다.</div>';
+}
+function last12(end){const d=new Date(end);d.setFullYear(d.getFullYear()-1);return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)}
+function bars(el,pairs){const tot=sum(pairs,p=>p[1]),max=Math.max(...pairs.map(p=>p[1]),1);
+  $(el).innerHTML=pairs.length?pairs.map(p=>`<div class="hbar" title="${esc(p[0])}: ${won(p[1])} (${(p[1]/tot*100).toFixed(1)}%)"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p[0])}</div><div class="track"><div class="fill" style="width:${p[1]/max*100}%"></div></div><div class="v">${f1(eok(p[1]))} · ${(p[1]/tot*100).toFixed(0)}%</div></div>`).join(""):'<div class="empty">데이터가 없습니다.</div>'}
+function group(rows,key){const m={};rows.forEach(r=>m[r[key]]=(m[r[key]]||0)+r.amount);return Object.entries(m).sort((a,b)=>b[1]-a[1])}
+function share(rows,end){const s=last12(end);let g=group(rows.filter(r=>r.date>s),"vendor");
+  if(g.length>7){const rest=g.slice(7);g=g.slice(0,7).concat([["기타 "+rest.length+"곳",sum(rest,p=>p[1])]])}bars("share",g)}
+function toporg(rows,end){const s=last12(end);bars("toporg",group(rows.filter(r=>r.date>s),"org").slice(0,8))}
+</script>
+</body>
+</html>
