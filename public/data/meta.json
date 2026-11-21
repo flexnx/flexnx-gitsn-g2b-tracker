@@ -1,14 +1,18 @@
 {
-  "sample": true,
-  "updated_at": "2026-11-20T14:05",
-  "data_through": "2026-11-19",
-  "rows": 122,
-  "target_rows": 100,
+  "sample": false,
+  "updated_at": "2026-11-21T12:37+09:00",
+  "data_through": "2026-11-20",
+  "rows": 0,
+  "target_rows": 0,
   "company_names": [
     "지슨"
   ],
-  "categories": [],
-  "backfill_incomplete": false,
+  "categories": [
+    "도청방지기",
+    "불법촬영카메라탐지기"
+  ],
+  "backfill_incomplete": true,
+  "pending_windows": 184,
   "unmapped_fields": [],
-  "api_calls": 0
+  "api_calls": 382
 }
