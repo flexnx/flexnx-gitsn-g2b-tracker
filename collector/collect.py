@@ -473,7 +473,7 @@ BF = {
     "amount": ["presmptPrce", "asignBdgtAmt", "totCntrctAmt", "thtmCntrctAmt", "cntrctAmt", "sumOrderAmt", "orderContrctAmt"],
     "deadline": ["bidClseDt", "opninRgstClseDt"],
     "method": ["cntrctCnclsMthdNm", "cntrctMthdNm", "bidMethdNm"],
-    "url": ["bidNtceDtlUrl", "bidNtceUrl", "cntrctDtlInfoUrl", "bfSpecDtlUrl"],
+    "url": ["bidNtceDtlUrl", "bidNtceUrl", "cntrctDtlInfoUrl", "cntrctInfoUrl", "bfSpecDtlUrl", "specDocFileUrl1"],
     "vendor": ["corpList", "cntrctCorpNm", "corpNm", "rprsntCorpNm"],
     "dminstt_list": ["dminsttList"],
     "status": ["ntceKindNm", "bidNtceSttusNm"],
@@ -489,18 +489,18 @@ def bpick(item, key):
 
 
 def edu_tier(org):
-    """발주 주체 구분."""
+    """발주 주체 구분. '○○교육청 △△고등학교'처럼 학교명이 붙으면 개별 학교로 본다."""
     n = org or ""
+    if re.search(r"대학", n):
+        return "대학"
+    if re.search(r"(초등|중|고등|특수|여자고등|공업고등|상업고등)학교|유치원|학교$", n):
+        return "개별 학교"
     if re.search(r"교육지원청|교육청", n):
         return "시도교육청·지원청"
     if re.search(r"^교육부|교육과정평가원|국립특수교육원|국립국제교육원|교육학술정보원", n):
         return "교육부·소속기관"
     if re.search(r"인사혁신처|산업인력공단|국가고시|시험원|평가원", n):
         return "시험 주관기관"
-    if re.search(r"대학", n):
-        return "대학"
-    if re.search(r"학교|유치원", n):
-        return "개별 학교"
     return org_type(n)
 
 
@@ -526,6 +526,7 @@ def bnorm(feed, kw, item):
         "method": str(bpick(item, "method") or ""), "status": str(bpick(item, "status") or ""),
         "vendor": vendor, "is_target": any(c in vendor for c in CFG["company_names"]),
         "url": str(bpick(item, "url") or ""),
+        "bid_no": str(item.get("bidNtceNoList") or ""),
     }
 
 
@@ -536,19 +537,34 @@ def bids(max_minutes=20, months=6):
     recs = {(r["feed"], r["id"], r["title"]): r for r in json.loads(out.read_text(encoding="utf-8"))} if out.exists() else {}
     state = json.loads(sp.read_text(encoding="utf-8")) if sp.exists() else {}
     state.setdefault("done", {}); state.setdefault("kw_param", {}); state.setdefault("dead", {})
+    if state.get("_v") != 2:  # 조회 조건 재시험(계약·발주계획)
+        for f in ("cntrct_thng", "plan_thng"):
+            state["kw_param"].pop(f, None)
+            state["done"] = {k: v for k, v in state["done"].items() if not k.startswith(f + "|")}
+        state["_v"] = 2
     end = dt.date.today()
     start = dt.date(end.year - (1 if months >= 12 else 0), end.month, 1) if months >= 12 else end - dt.timedelta(days=31 * months)
     wins = month_windows(start, end)
     info = {"feeds": {}, "errors": [], "stopped": ""}
 
-    def dparams(feed, a, b):
-        if feed["dates"] == "dt":
-            return {"inqryDiv": 1, "inqryBgnDt": ymd(a) + "0000", "inqryEndDt": ymd(b) + "2359"}
-        if feed["dates"] == "date":
-            return {"inqryDiv": 1, "inqryBgnDate": ymd(a), "inqryEndDate": ymd(b),
-                    "inqryBgnDt": ymd(a) + "0000", "inqryEndDt": ymd(b) + "2359"}
-        return {"orderBgnYm": a.strftime("%Y%m"), "orderEndYm": b.strftime("%Y%m"),
-                "inqryBgnDt": ymd(a) + "0000", "inqryEndDt": ymd(b) + "2359"}
+    VARIANTS = {"dt": ["dt"], "date": ["date", "dt", "date2", "both"], "ym": ["ym", "ymdt", "dt"]}
+    state.setdefault("variant", {})
+
+    def dparams(feed, a, b, v=None):
+        v = v or state["variant"].get(feed["id"]) or VARIANTS[feed["dates"]][0]
+        dtp = {"inqryBgnDt": ymd(a) + "0000", "inqryEndDt": ymd(b) + "2359"}
+        dp = {"inqryBgnDate": ymd(a), "inqryEndDate": ymd(b)}
+        if v == "dt":
+            return {"inqryDiv": 1, **dtp}
+        if v == "date":
+            return {"inqryDiv": 1, **dp}
+        if v == "date2":
+            return {"inqryDiv": 2, **dp}
+        if v == "both":
+            return {"inqryDiv": 1, **dp, **dtp}
+        if v == "ym":
+            return {"orderBgnYm": a.strftime("%Y%m"), "orderEndYm": b.strftime("%Y%m")}
+        return {"orderBgnYm": a.strftime("%Y%m"), "orderEndYm": b.strftime("%Y%m"), **dtp}
 
     def fetch(feed, kwp, kw, a, b):
         page, got = 1, []
@@ -569,13 +585,30 @@ def bids(max_minutes=20, months=6):
         kwp = state["kw_param"].get(feed["id"])
         # 조회 조건 후보 시험: 키워드를 넣었을 때 결과 수가 넣지 않았을 때보다 줄어야 유효
         if not kwp:
-            a, b = wins[0]
+            a, b = wins[1] if len(wins) > 1 else wins[0]  # 지난달(자료 지연 영향 없음)
             try:
-                _, base_total = call(feed["op"], {**dparams(feed, a, b), "pageNo": 1, "numOfRows": 1}, base=feed["base"])
+                base_total, tried = 0, {}
+                for v in VARIANTS[feed["dates"]]:
+                    try:
+                        _, t = call(feed["op"], {**dparams(feed, a, b, v), "pageNo": 1, "numOfRows": 1}, base=feed["base"])
+                    except RuntimeError as e:
+                        if "429" in str(e) or "403" in str(e):
+                            raise
+                        tried[v] = str(e)[:80]
+                        continue
+                    tried[v] = t
+                    if t > 0:
+                        base_total = t
+                        state["variant"][feed["id"]] = v
+                        break
+                fi["variant_totals"] = tried
+                if base_total == 0:
+                    info["errors"].append(f'{feed["id"]}: 날짜 조건으로 조회되는 자료가 없음 {tried}')
+                    continue
                 for cand in feed["kw"]:
                     _, t = call(feed["op"], {**dparams(feed, a, b), cand: "불법촬영", "pageNo": 1, "numOfRows": 1},
                                 base=feed["base"])
-                    if t < base_total or base_total == 0:
+                    if t < base_total:
                         kwp = cand
                         break
                 fi["base_total"] = base_total
@@ -626,6 +659,8 @@ def bids(max_minutes=20, months=6):
             fi["note"] = "연속 6회 실패로 중단"
         if info["stopped"]:
             break
+    for r in recs.values():
+        r["tier"] = edu_tier(r["org"] or r["notice_org"])
     data = sorted(recs.values(), key=lambda r: (r["date"], r["id"]), reverse=True)
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     sp.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
