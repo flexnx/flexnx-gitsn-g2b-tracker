@@ -15,9 +15,9 @@
    "keys": []
   },
   "spec_thng": {
-   "ok": 63,
+   "ok": 18,
    "failed": 0,
-   "rows": 5,
+   "rows": 3,
    "kw_param": "prdctClsfcNoNm",
    "keys": [
     "asignBdgtAmt",
@@ -44,7 +44,6 @@
     "specDocFileUrl5",
     "swBizObjYn"
    ],
-   "base_total": 3728,
    "first": {
     "bsnsDivNm": "물품",
     "refNo": "안전관리팀-2731",
@@ -72,9 +71,9 @@
    }
   },
   "spec_servc": {
-   "ok": 63,
+   "ok": 18,
    "failed": 0,
-   "rows": 2,
+   "rows": 1,
    "kw_param": "prdctClsfcNoNm",
    "keys": [
     "asignBdgtAmt",
@@ -101,7 +100,6 @@
     "specDocFileUrl5",
     "swBizObjYn"
    ],
-   "base_total": 6575,
    "first": {
     "bsnsDivNm": "일반용역",
     "refNo": "한국방송통신전파진흥원 제2026-052052호",
@@ -129,12 +127,17 @@
    }
   },
   "cntrct_thng": {
-   "ok": 63,
+   "ok": 0,
    "failed": 0,
    "rows": 0,
-   "kw_param": "cntrctNm",
+   "kw_param": null,
    "keys": [],
-   "base_total": 0
+   "variant_totals": {
+    "date": 0,
+    "dt": 0,
+    "date2": 0,
+    "both": 0
+   }
   },
   "plan_thng": {
    "ok": 63,
@@ -142,17 +145,21 @@
    "rows": 0,
    "kw_param": "bizNm",
    "keys": [],
-   "base_total": 4783
+   "variant_totals": {
+    "ym": 7395
+   },
+   "base_total": 7395
   }
  },
  "errors": [
   "bid_thng 시험: getBidPblancListInfoThngPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (1s)",
-  "bid_servc 시험: getBidPblancListInfoServcPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (0s)"
+  "bid_servc 시험: getBidPblancListInfoServcPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (1s)",
+  "cntrct_thng: 날짜 조건으로 조회되는 자료가 없음 {'date': 0, 'dt': 0, 'date2': 0, 'both': 0}"
  ],
  "stopped": "",
  "rows": 7,
- "api_calls": 262,
- "minutes": 1.9,
+ "api_calls": 107,
+ "minutes": 1.0,
  "keywords": [
   "불법촬영",
   "불법카메라",
@@ -164,5 +171,5 @@
   "부정행위",
   "백도어"
  ],
- "updated_at": "2026-11-21T18:21+09:00"
+ "updated_at": "2026-11-21T19:10+09:00"
 }

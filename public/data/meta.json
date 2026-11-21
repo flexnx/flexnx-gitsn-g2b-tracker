@@ -1,6 +1,6 @@
 {
   "sample": false,
-  "updated_at": "2026-11-21T18:19+09:00",
+  "updated_at": "2026-11-21T19:09+09:00",
   "data_through": "2026-11-20",
   "rows": 0,
   "target_rows": 0,
@@ -26,15 +26,15 @@
     "prdctIdntNoNm=지슨 2026-11: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
     "prdctClsfcNoNm=도청방지기 2026-11: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
     "prdctClsfcNoNm=불법촬영카메라탐지기 2026-11: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctIdntNoNm=지슨 2026-10: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (2s)",
+    "prdctIdntNoNm=지슨 2026-10: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
     "prdctClsfcNoNm=도청방지기 2026-10: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
     "prdctClsfcNoNm=불법촬영카메라탐지기 2026-10: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctIdntNoNm=지슨 2026-09: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctClsfcNoNm=도청방지기 2026-09: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (0s)",
+    "prdctIdntNoNm=지슨 2026-09: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (0s)",
+    "prdctClsfcNoNm=도청방지기 2026-09: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
     "prdctClsfcNoNm=불법촬영카메라탐지기 2026-09: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
     "prdctIdntNoNm=지슨 2026-08: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (0s)",
     "prdctClsfcNoNm=도청방지기 2026-08: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (0s)",
-    "prdctClsfcNoNm=불법촬영카메라탐지기 2026-08: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)"
+    "prdctClsfcNoNm=불법촬영카메라탐지기 2026-08: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (0s)"
   ],
   "unmapped_fields": [],
   "api_calls": 12
