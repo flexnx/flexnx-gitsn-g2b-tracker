@@ -91,6 +91,17 @@ footer{color:var(--muted);font-size:12px;margin-top:22px}
       <div id="toporg"></div>
     </div>
   </section>
+  <section class="card" id="bidcard" style="margin-top:14px;display:none">
+    <h2>신규 공고·사전규격·계약·발주계획</h2>
+    <div class="sub" id="bidsub"></div>
+    <div class="filters" style="margin:12px 0 8px">
+      <label for="bkind">종류</label><select id="bkind"><option value="">전체</option></select>
+      <label for="btier">발주 주체</label><select id="btier"><option value="">전체</option></select>
+      <label for="bkw">키워드</label><select id="bkw"><option value="">전체</option></select>
+    </div>
+    <div class="legend" id="bidcount"></div>
+    <div class="scroll" id="bidtable"></div>
+  </section>
   <footer>출처: 조달청 나라장터쇼핑몰 납품요구 상세(공공데이터포털 오픈API). 납품요구 접수일 기준이며 매출 인식 시점과 다릅니다. 민간(B2B)·수출·쇼핑몰 외 계약은 포함되지 않습니다.</footer>
 </main>
 <div id="tip"></div>
@@ -213,6 +224,22 @@ function group(rows,key){const m={};rows.forEach(r=>m[r[key]]=(m[r[key]]||0)+r.a
 function share(rows,end){const s=last12(end);let g=group(rows.filter(r=>r.date>s),"vendor");
   if(g.length>7){const rest=g.slice(7);g=g.slice(0,7).concat([["기타 "+rest.length+"곳",sum(rest,p=>p[1])]])}bars("share",g)}
 function toporg(rows,end){const s=last12(end);bars("toporg",group(rows.filter(r=>r.date>s),"org").slice(0,8))}
+
+let BIDS=[],BMETA={};
+Promise.all([fetch("data/bids.json").then(r=>r.ok?r.json():[]),fetch("data/bids_meta.json").then(r=>r.ok?r.json():{})])
+.then(([b,m])=>{BIDS=b;BMETA=m;if(!m.updated_at)return;$("bidcard").style.display="";
+  const uniq=k=>[...new Set(BIDS.map(r=>r[k]).filter(Boolean))].sort();
+  [["bkind","kind"],["btier","tier"],["bkw","keyword"]].forEach(([id,k])=>{$(id).insertAdjacentHTML("beforeend",uniq(k).map(v=>`<option>${esc(v)}</option>`).join(""));$(id).onchange=renderBids});
+  renderBids()}).catch(()=>{});
+function renderBids(){
+  const k=$("bkind").value,t=$("btier").value,w=$("bkw").value;
+  const rows=BIDS.filter(r=>(!k||r.kind===k)&&(!t||r.tier===t)&&(!w||r.keyword===w));
+  const errs=(BMETA.errors||[]).length;
+  $("bidsub").textContent=`나라장터 공고명 키워드 검색 · 갱신 ${String(BMETA.updated_at).replace("T"," ").slice(0,16)} · ${BIDS.length.toLocaleString()}건`+(errs?` · 일부 조회 실패 ${errs}건`:"");
+  const c={};rows.forEach(r=>c[r.tier]=(c[r.tier]||0)+1);
+  $("bidcount").innerHTML=Object.entries(c).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<span>${esc(n)} <b style="color:var(--text)">${v}</b></span>`).join("");
+  $("bidtable").innerHTML=rows.length?`<table><tr><th>일자</th><th>종류</th><th>발주 주체</th><th>수요기관</th><th>제목</th><th class="n">금액</th><th>마감·업체</th></tr>`+rows.slice(0,200).map(r=>`<tr><td>${esc(r.date)}</td><td>${esc(r.kind)}·${esc(r.sub)}</td><td>${esc(r.tier)}</td><td>${esc(r.org||r.notice_org)}</td><td style="white-space:normal;min-width:240px">${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:inherit">${esc(r.title)}</a>`:esc(r.title)}</td><td class="n">${r.amount?won(r.amount):"–"}</td><td>${esc(r.vendor||String(r.deadline).slice(0,10))}${r.is_target?" ●":""}</td></tr>`).join("")+"</table>"+(rows.length>200?`<div class="sub" style="margin-top:6px">최근 200건만 표시</div>`:""):'<div class="empty">해당 조건의 공고가 없습니다.</div>';
+}
 </script>
 </body>
 </html>
