@@ -67,7 +67,7 @@ def num(v):
         return 0.0
 
 
-def call(operation, params, timeout=45, tries=2):
+def call(operation, params, timeout=60, tries=1):
     """한 페이지 호출. (items, totalCount) 반환."""
     key = os.environ.get("DATA_GO_KR_KEY")
     if not key:
@@ -79,13 +79,16 @@ def call(operation, params, timeout=45, tries=2):
     last = None
     for attempt in range(tries):
         CALLS["n"] += 1
+        t0 = time.time()
         try:
             with urllib.request.urlopen(url, timeout=timeout) as r:
                 text = r.read().decode("utf-8", "replace")
-        except (urllib.error.URLError, TimeoutError) as e:
-            last = repr(e)
+        except Exception as e:  # 시간 초과, 연결 끊김 등
+            last = f"{type(e).__name__}: {str(e)[:80]} ({time.time() - t0:.0f}s)"
             time.sleep(2 * (attempt + 1))
             continue
+        CALLS["ok_sec"] = CALLS.get("ok_sec", 0) + (time.time() - t0)
+        CALLS["ok"] = CALLS.get("ok", 0) + 1
         if text.lstrip().startswith("<"):
             m = re.search(r"<returnAuthMsg>(.*?)</returnAuthMsg>", text)
             m2 = re.search(r"<returnReasonCode>(.*?)</returnReasonCode>", text)
@@ -93,12 +96,15 @@ def call(operation, params, timeout=45, tries=2):
                 f"{operation}: 게이트웨이 오류 {m2.group(1) if m2 else '?'} "
                 f"{m.group(1) if m else text[:200]}"
             )
-        body = json.loads(text)
+        try:
+            body = json.loads(text)
+        except ValueError:
+            raise RuntimeError(f"{operation}: JSON 아님 {text[:120]!r}")
         resp = body.get("response", body)
         header = resp.get("header", {})
         code = str(header.get("resultCode", "00"))
         if code in ("01", "02", "05"):  # 일시 오류
-            last = header.get("resultMsg")
+            last = f"resultCode {code} {header.get('resultMsg')}"
             time.sleep(2 * (attempt + 1))
             continue
         if code not in ("00", "0"):
@@ -110,7 +116,7 @@ def call(operation, params, timeout=45, tries=2):
         if isinstance(items, dict):
             items = [items]
         return items, int(b.get("totalCount") or 0)
-    raise RuntimeError(f"{operation}: 재시도 실패 {last}")
+    raise RuntimeError(f"{operation}: 실패 {last}")
 
 
 def paged(operation, params):
@@ -312,7 +318,21 @@ def probe():
 
 
 # ---------- collect ----------
+def month_windows(start, end):
+    """달력 월 단위 창. 최신 달부터."""
+    out, y, m = [], end.year, end.month
+    while (y, m) >= (start.year, start.month):
+        a = dt.date(y, m, 1)
+        nxt = dt.date(y + (m == 12), m % 12 + 1, 1)
+        out.append((max(a, start), min(nxt - dt.timedelta(days=1), end)))
+        y, m = (y - 1, 12) if m == 1 else (y, m - 1)
+    return out
+
+
 def collect():
+    t_start = time.time()
+    max_minutes = CFG.get("max_minutes", 40)
+    rows_per_page = 300
     DATA.mkdir(parents=True, exist_ok=True)
     out = DATA / "deliveries.json"
     state_path = DATA / "state.json"
@@ -323,81 +343,103 @@ def collect():
                 continue
             rows[(r["req_no"], r["seq"], r["contract_no"], r["item_name"])] = r
     state = json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
+    if state.get("_v") != 2:
+        state = {"_v": 2, "done": {}}
     end = dt.date.today() - dt.timedelta(days=1)  # API는 D-1까지 제공
     start0 = dt.date.fromisoformat(CFG["start_date"])
     refresh_from = end - dt.timedelta(days=CFG["refresh_days"])
     op = CFG["operations"]["delivery_detail"]
-    queries = [("cntrctNo", c) for c in CFG["contract_numbers"]] + \
-              [("prdctIdntNoNm", c) for c in CFG.get("item_keywords", [])] + \
-              [("dtilPrdctClsfcNoNm", c) for c in CFG["category_names"]]
+    # 규격명 키워드(지슨) 먼저, 그다음 품명(경쟁사 포함)
+    queries = [("prdctIdntNoNm", c) for c in CFG.get("item_keywords", [])] + \
+              [("prdctClsfcNoNm", c) for c in CFG["category_names"]]
     if not queries:
         sys.exit("config.json 에 조회 조건이 없습니다. 먼저 probe 를 실행하세요.")
-    stats = {"raw": 0, "failed": 0, "budget": False, "misses": set()}
+    stats = {"raw": 0, "failed": 0, "ok": 0, "stopped": "", "misses": set(), "errors": []}
 
     def fetch(pname, pval, a, b):
-        items = list(paged(op, {"inqryDiv": 1, "inqryBgnDate": ymd(a),
-                                "inqryEndDate": ymd(b), pname: pval}))
-        stats["raw"] += len(items)
-        if items:
-            stats["misses"] |= set(field_report(items)["unmapped"])
-        for it in items:
-            r = normalize(it)
-            k = (r["req_no"], r["seq"], r["contract_no"], r["item_name"])
-            if k not in rows or r["chg"] >= rows[k]["chg"]:
-                rows[k] = r
+        page = 1
+        while True:
+            items, total = call(op, {"inqryDiv": 1, "inqryBgnDate": ymd(a), "inqryEndDate": ymd(b),
+                                     pname: pval, "pageNo": page, "numOfRows": rows_per_page})
+            stats["raw"] += len(items)
+            if items:
+                stats["misses"] |= set(field_report(items)["unmapped"])
+            for it in items:
+                r = normalize(it)
+                k = (r["req_no"], r["seq"], r["contract_no"], r["item_name"])
+                if k not in rows or r["chg"] >= rows[k]["chg"]:
+                    rows[k] = r
+            if page * rows_per_page >= total or not items:
+                return
+            page += 1
+
+    wins = month_windows(start0, end)
+    todo = []
+    for a, b in wins:  # 최신 달부터, 달마다 모든 조회 조건
+        for pname, pval in queries:
+            qkey = f"{pname}={pval}"
+            wkey = a.isoformat()[:7]
+            if wkey in state["done"].get(qkey, []) and b < refresh_from:
+                continue
+            todo.append((pname, pval, a, b, qkey, wkey))
 
     def save():
         data = sorted((r for r in rows.values() if r["date"]),
                       key=lambda r: (r["date"], r["req_no"], r["seq"]))
         out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-        state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+        state_path.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
+        total_w = len(wins) * len(queries)
+        done_w = sum(len(v) for v in state["done"].values())
         meta = {
             "sample": False,
             "updated_at": dt.datetime.now(dt.timezone(dt.timedelta(hours=9))).isoformat(timespec="minutes"),
             "data_through": end.isoformat(),
             "rows": len(data),
             "target_rows": sum(1 for r in data if r["is_target"]),
+            "earliest_date": data[0]["date"] if data else None,
             "company_names": CFG["company_names"],
             "categories": CFG["category_names"],
-            "backfill_incomplete": stats["budget"] or bool(state.get("_retry")),
-            "pending_windows": len(state.get("_retry", [])),
+            "backfill_incomplete": done_w < total_w,
+            "windows_done": done_w, "windows_total": total_w,
+            "this_run": {"ok": stats["ok"], "failed": stats["failed"], "stopped": stats["stopped"],
+                         "minutes": round((time.time() - t_start) / 60, 1),
+                         "avg_ok_sec": round(CALLS.get("ok_sec", 0) / max(CALLS.get("ok", 0), 1), 1)},
+            "errors": stats["errors"][:25],
             "unmapped_fields": sorted(stats["misses"]),
             "api_calls": CALLS["n"],
         }
         (DATA / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
         return meta
 
-    # 일(日) 단위 창 목록: 지난번 실패분 + 새 구간
-    todo = [(q[0], q[1], dt.date.fromisoformat(q[2]), dt.date.fromisoformat(q[3]))
-            for q in state.get("_retry", [])]
-    state["_retry"] = []
-    for pname, pval in queries:
-        done_until = state.get(f"{pname}={pval}")
-        start = start0 if not done_until else min(
-            dt.date.fromisoformat(done_until) + dt.timedelta(days=1), refresh_from)
-        todo += [(pname, pval, a, b) for a, b in windows(start, end, CFG["window_days"])]
-    for i, (pname, pval, a, b) in enumerate(todo):
-        if stats["budget"]:
-            state["_retry"].append([pname, pval, a.isoformat(), b.isoformat()])
-            continue
+    streak = 0
+    for i, (pname, pval, a, b, qkey, wkey) in enumerate(todo):
+        if (time.time() - t_start) / 60 > max_minutes:
+            stats["stopped"] = f"시간 한도 {max_minutes}분"
+            break
+        if streak >= 12:
+            stats["stopped"] = "연속 12회 실패 — API 응답 없음"
+            break
         try:
             fetch(pname, pval, a, b)
         except RuntimeError as e:
-            state["_retry"].append([pname, pval, a.isoformat(), b.isoformat()])
             if str(e) == "CALL_BUDGET":
-                stats["budget"] = True
-            else:
-                stats["failed"] += 1
-                print(f"건너뜀 {pname}={pval} {a}~{b}: {str(e)[:120]}", flush=True)
-        qkey = f"{pname}={pval}"
-        if not state.get(qkey) or b.isoformat() > state[qkey]:
-            state[qkey] = b.isoformat()
-        if i % 10 == 9:
+                stats["stopped"] = "호출 한도"
+                break
+            stats["failed"] += 1
+            streak += 1
+            stats["errors"].append(f"{qkey} {wkey}: {str(e)[:140]}")
+            print(f"건너뜀 {qkey} {wkey}: {str(e)[:140]}", flush=True)
+            continue
+        streak = 0
+        stats["ok"] += 1
+        done = state["done"].setdefault(qkey, [])
+        if wkey not in done:
+            done.append(wkey)
+        if stats["ok"] % 8 == 0:
             save()
             print(f"진행 {i + 1}/{len(todo)} · 행 {len(rows)} · 호출 {CALLS['n']}", flush=True)
     meta = save()
     print(json.dumps(meta, ensure_ascii=False, indent=2))
-    print(f"이번 실행에서 받은 원본 행: {stats['raw']} · 실패한 구간: {stats['failed']}(다음 실행에서 재시도)")
 
 
 if __name__ == "__main__":
