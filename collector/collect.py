@@ -67,7 +67,7 @@ def num(v):
         return 0.0
 
 
-def call(operation, params, timeout=60, tries=1):
+def call(operation, params, timeout=60, tries=1, base=None):
     """한 페이지 호출. (items, totalCount) 반환."""
     key = os.environ.get("DATA_GO_KR_KEY")
     if not key:
@@ -75,7 +75,8 @@ def call(operation, params, timeout=60, tries=1):
     if CALLS["n"] >= CFG["max_calls_per_run"]:
         raise RuntimeError("CALL_BUDGET")
     q = {"serviceKey": key, "type": "json", **params}
-    url = f'{CFG["base_url"]}/{operation}?{urllib.parse.urlencode(q)}'
+    root = (base or CFG["base_url"]).replace("https://apis.data.go.kr", "http://apis.data.go.kr")
+    url = f'{root}/{operation}?{urllib.parse.urlencode(q)}'
     last = None
     for attempt in range(tries):
         CALLS["n"] += 1
@@ -442,6 +443,210 @@ def collect():
     print(json.dumps(meta, ensure_ascii=False, indent=2))
 
 
+# ---------- 입찰공고·사전규격·계약·발주계획 ----------
+G2B = "http://apis.data.go.kr/1230000"
+KEYWORDS = ["불법촬영", "불법카메라", "몰래카메라", "무선도청", "도청탐지", "도청방지",
+            "전파탐지", "부정행위", "백도어"]
+# kw: 키워드 조회 조건 후보(앞에서부터 시험), dates: 날짜 조건 형식
+FEEDS = [
+    {"id": "bid_thng", "kind": "입찰공고", "sub": "물품", "base": G2B + "/ad/BidPublicInfoService",
+     "op": "getBidPblancListInfoThngPPSSrch", "kw": ["bidNtceNm"], "dates": "dt"},
+    {"id": "bid_servc", "kind": "입찰공고", "sub": "용역", "base": G2B + "/ad/BidPublicInfoService",
+     "op": "getBidPblancListInfoServcPPSSrch", "kw": ["bidNtceNm"], "dates": "dt"},
+    {"id": "spec_thng", "kind": "사전규격", "sub": "물품", "base": G2B + "/ao/HrcspSsstndrdInfoService",
+     "op": "getPublicPrcureThngInfoThngPPSSrch", "kw": ["prdctClsfcNoNm", "bizNm", "prcureNm"], "dates": "dt"},
+    {"id": "spec_servc", "kind": "사전규격", "sub": "용역", "base": G2B + "/ao/HrcspSsstndrdInfoService",
+     "op": "getPublicPrcureThngInfoServcPPSSrch", "kw": ["prdctClsfcNoNm", "bizNm", "prcureNm"], "dates": "dt"},
+    {"id": "cntrct_thng", "kind": "계약", "sub": "물품", "base": G2B + "/ao/CntrctInfoService",
+     "op": "getCntrctInfoListThngPPSSrch", "kw": ["cntrctNm", "prdctClsfcNoNm"], "dates": "date"},
+    {"id": "plan_thng", "kind": "발주계획", "sub": "물품", "base": G2B + "/ao/OrderPlanSttusService",
+     "op": "getOrderPlanSttusListThngPPSSrch", "kw": ["bizNm", "prdctClsfcNoNm"], "dates": "ym"},
+]
+BF = {
+    "id": ["bidNtceNo", "bfSpecRgstNo", "untyCntrctNo", "dcsnCntrctNo", "cntrctNo", "orderPlanUntyNo", "orderPlanSno"],
+    "ord": ["bidNtceOrd", "cntrctChgOrd"],
+    "title": ["bidNtceNm", "cntrctNm", "bizNm", "prdctClsfcNoNm", "prcureNm"],
+    "date": ["bidNtceDt", "rcptDt", "rgstDt", "cntrctCnclsDate", "cntrctDate", "nticeDt", "orderYear"],
+    "org": ["dminsttNm", "rlDminsttNm", "dmndInsttNm", "orderInsttNm", "cntrctInsttNm"],
+    "notice_org": ["ntceInsttNm", "orderInsttNm", "cntrctInsttNm"],
+    "org_div": ["dmndInsttDivNm", "cntrctInsttJrsdctnDivNm", "jrsdctnDivNm"],
+    "amount": ["presmptPrce", "asignBdgtAmt", "totCntrctAmt", "thtmCntrctAmt", "cntrctAmt", "sumOrderAmt", "orderContrctAmt"],
+    "deadline": ["bidClseDt", "opninRgstClseDt"],
+    "method": ["cntrctCnclsMthdNm", "cntrctMthdNm", "bidMethdNm"],
+    "url": ["bidNtceDtlUrl", "bidNtceUrl", "cntrctDtlInfoUrl", "bfSpecDtlUrl"],
+    "vendor": ["corpList", "cntrctCorpNm", "corpNm", "rprsntCorpNm"],
+    "dminstt_list": ["dminsttList"],
+    "status": ["ntceKindNm", "bidNtceSttusNm"],
+}
+
+
+def bpick(item, key):
+    for name in BF[key]:
+        v = item.get(name)
+        if v not in (None, ""):
+            return v
+    return None
+
+
+def edu_tier(org):
+    """발주 주체 구분."""
+    n = org or ""
+    if re.search(r"교육지원청|교육청", n):
+        return "시도교육청·지원청"
+    if re.search(r"^교육부|교육과정평가원|국립특수교육원|국립국제교육원|교육학술정보원", n):
+        return "교육부·소속기관"
+    if re.search(r"인사혁신처|산업인력공단|국가고시|시험원|평가원", n):
+        return "시험 주관기관"
+    if re.search(r"대학", n):
+        return "대학"
+    if re.search(r"학교|유치원", n):
+        return "개별 학교"
+    return org_type(n)
+
+
+def bnorm(feed, kw, item):
+    org = str(bpick(item, "org") or "")
+    dl = str(bpick(item, "dminstt_list") or "")
+    if not org and dl:  # 계약: [순번^기관코드^기관명^...] 형식
+        parts = dl.strip("[]").split("^")
+        org = parts[2] if len(parts) > 2 else dl[:40]
+    vendor = str(bpick(item, "vendor") or "")
+    if vendor.startswith("["):
+        vp = vendor.strip("[]").split("^")
+        vendor = vp[3] if len(vp) > 3 else vendor[:60]
+    date = re.sub(r"[^0-9]", "", str(bpick(item, "date") or ""))[:8]
+    date = f"{date[:4]}-{date[4:6]}-{date[6:8]}" if len(date) >= 8 else (date[:4] if date else "")
+    return {
+        "feed": feed["id"], "kind": feed["kind"], "sub": feed["sub"], "keyword": kw,
+        "id": f'{bpick(item, "id") or ""}-{bpick(item, "ord") or ""}'.strip("-"),
+        "title": str(bpick(item, "title") or ""), "date": date,
+        "org": org, "notice_org": str(bpick(item, "notice_org") or ""),
+        "tier": edu_tier(org or str(bpick(item, "notice_org") or "")),
+        "amount": num(bpick(item, "amount")), "deadline": str(bpick(item, "deadline") or ""),
+        "method": str(bpick(item, "method") or ""), "status": str(bpick(item, "status") or ""),
+        "vendor": vendor, "is_target": any(c in vendor for c in CFG["company_names"]),
+        "url": str(bpick(item, "url") or ""),
+    }
+
+
+def bids(max_minutes=20, months=6):
+    t_start = time.time()
+    DATA.mkdir(parents=True, exist_ok=True)
+    out, sp = DATA / "bids.json", DATA / "bids_state.json"
+    recs = {(r["feed"], r["id"], r["title"]): r for r in json.loads(out.read_text(encoding="utf-8"))} if out.exists() else {}
+    state = json.loads(sp.read_text(encoding="utf-8")) if sp.exists() else {}
+    state.setdefault("done", {}); state.setdefault("kw_param", {}); state.setdefault("dead", {})
+    end = dt.date.today()
+    start = dt.date(end.year - (1 if months >= 12 else 0), end.month, 1) if months >= 12 else end - dt.timedelta(days=31 * months)
+    wins = month_windows(start, end)
+    info = {"feeds": {}, "errors": [], "stopped": ""}
+
+    def dparams(feed, a, b):
+        if feed["dates"] == "dt":
+            return {"inqryDiv": 1, "inqryBgnDt": ymd(a) + "0000", "inqryEndDt": ymd(b) + "2359"}
+        if feed["dates"] == "date":
+            return {"inqryDiv": 1, "inqryBgnDate": ymd(a), "inqryEndDate": ymd(b),
+                    "inqryBgnDt": ymd(a) + "0000", "inqryEndDt": ymd(b) + "2359"}
+        return {"orderBgnYm": a.strftime("%Y%m"), "orderEndYm": b.strftime("%Y%m"),
+                "inqryBgnDt": ymd(a) + "0000", "inqryEndDt": ymd(b) + "2359"}
+
+    def fetch(feed, kwp, kw, a, b):
+        page, got = 1, []
+        while True:
+            items, total = call(feed["op"], {**dparams(feed, a, b), kwp: kw, "pageNo": page, "numOfRows": 100},
+                                base=feed["base"])
+            got += items
+            if page * 100 >= total or not items or page >= 5:
+                return got, total
+            page += 1
+
+    for feed in FEEDS:
+        fi = info["feeds"].setdefault(feed["id"], {"ok": 0, "failed": 0, "rows": 0, "kw_param": None, "keys": []})
+        if state["dead"].get(feed["id"]) == end.isoformat():
+            fi["note"] = "오늘은 건너뜀(앞선 실행에서 응답 없음)"
+            continue
+        streak = 0
+        kwp = state["kw_param"].get(feed["id"])
+        # 조회 조건 후보 시험: 키워드를 넣었을 때 결과 수가 넣지 않았을 때보다 줄어야 유효
+        if not kwp:
+            a, b = wins[0]
+            try:
+                _, base_total = call(feed["op"], {**dparams(feed, a, b), "pageNo": 1, "numOfRows": 1}, base=feed["base"])
+                for cand in feed["kw"]:
+                    _, t = call(feed["op"], {**dparams(feed, a, b), cand: "불법촬영", "pageNo": 1, "numOfRows": 1},
+                                base=feed["base"])
+                    if t < base_total or base_total == 0:
+                        kwp = cand
+                        break
+                fi["base_total"] = base_total
+            except RuntimeError as e:
+                info["errors"].append(f'{feed["id"]} 시험: {str(e)[:160]}')
+                fi["failed"] += 1
+                state["dead"][feed["id"]] = end.isoformat() if "429" in str(e) else ""
+                continue
+            if not kwp:
+                info["errors"].append(f'{feed["id"]}: 키워드 조회 조건을 찾지 못함 {feed["kw"]}')
+                continue
+            state["kw_param"][feed["id"]] = kwp
+        fi["kw_param"] = kwp
+        for a, b in wins:
+            for kw in KEYWORDS:
+                wkey = f'{feed["id"]}|{kw}|{a.isoformat()[:7]}'
+                if wkey in state["done"] and b < end - dt.timedelta(days=45):
+                    continue
+                if (time.time() - t_start) / 60 > max_minutes:
+                    info["stopped"] = f"시간 한도 {max_minutes}분"
+                    break
+                if streak >= 6:
+                    break
+                try:
+                    items, total = fetch(feed, kwp, kw, a, b)
+                except RuntimeError as e:
+                    if str(e) == "CALL_BUDGET":
+                        info["stopped"] = "호출 한도"
+                        break
+                    streak += 1
+                    fi["failed"] += 1
+                    info["errors"].append(f"{wkey}: {str(e)[:140]}")
+                    continue
+                streak = 0
+                fi["ok"] += 1
+                fi["rows"] += len(items)
+                if items and not fi["keys"]:
+                    fi["keys"] = sorted(items[0].keys())
+                    fi["first"] = items[0]
+                for it in items:
+                    r = bnorm(feed, kw, it)
+                    recs[(r["feed"], r["id"], r["title"])] = r
+                state["done"][wkey] = 1
+            if info["stopped"] or streak >= 6:
+                break
+        if streak >= 6:
+            state["dead"][feed["id"]] = end.isoformat()
+            fi["note"] = "연속 6회 실패로 중단"
+        if info["stopped"]:
+            break
+    data = sorted(recs.values(), key=lambda r: (r["date"], r["id"]), reverse=True)
+    out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    sp.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+    info.update(rows=len(data), errors=info["errors"][:30], api_calls=CALLS["n"],
+                minutes=round((time.time() - t_start) / 60, 1), keywords=KEYWORDS,
+                updated_at=dt.datetime.now(dt.timezone(dt.timedelta(hours=9))).isoformat(timespec="minutes"))
+    (DATA / "bids_meta.json").write_text(json.dumps(info, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(json.dumps({k: v for k, v in info.items() if k != "feeds"}, ensure_ascii=False, indent=1))
+    for k, v in info["feeds"].items():
+        print(k, {x: v[x] for x in v if x not in ("keys", "first")})
+
+
+def run_all():
+    try:
+        collect()
+    except SystemExit as e:
+        print(e)
+    CALLS["n"] = 0
+    bids()
+
+
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "collect"
-    {"probe": probe, "collect": collect}[mode]()
+    {"probe": probe, "collect": run_all, "bids": bids, "orders": collect}[mode]()
