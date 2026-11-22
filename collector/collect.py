@@ -67,14 +67,14 @@ def num(v):
         return 0.0
 
 
-def call(operation, params, timeout=60, tries=1, base=None):
+def call(operation, params, timeout=60, tries=1, base=None, keyname="serviceKey"):
     """한 페이지 호출. (items, totalCount) 반환."""
     key = os.environ.get("DATA_GO_KR_KEY")
     if not key:
         sys.exit("환경변수 DATA_GO_KR_KEY 가 없습니다.")
     if CALLS["n"] >= CFG["max_calls_per_run"]:
         raise RuntimeError("CALL_BUDGET")
-    q = {"serviceKey": key, "type": "json", **params}
+    q = {keyname: key, "type": "json", **params}
     root = (base or CFG["base_url"]).replace("https://apis.data.go.kr", "http://apis.data.go.kr")
     url = f'{root}/{operation}?{urllib.parse.urlencode(q)}'
     last = None
@@ -459,6 +459,10 @@ FEEDS = [
      "op": "getPublicPrcureThngInfoServcPPSSrch", "kw": ["prdctClsfcNoNm", "bizNm", "prcureNm"], "dates": "dt"},
     {"id": "cntrct_thng", "kind": "계약", "sub": "물품", "base": G2B + "/ao/CntrctInfoService",
      "op": "getCntrctInfoListThngPPSSrch", "kw": ["cntrctNm", "prdctClsfcNoNm"], "dates": "date"},
+    {"id": "award_thng", "kind": "낙찰", "sub": "물품", "base": G2B + "/as/ScsbidInfoService",
+     "op": "getScsbidListSttusThngPPSSrch", "kw": ["bidNtceNm"], "dates": "dt"},
+    {"id": "award_servc", "kind": "낙찰", "sub": "용역", "base": G2B + "/as/ScsbidInfoService",
+     "op": "getScsbidListSttusServcPPSSrch", "kw": ["bidNtceNm"], "dates": "dt"},
     {"id": "plan_thng", "kind": "발주계획", "sub": "물품", "base": G2B + "/ao/OrderPlanSttusService",
      "op": "getOrderPlanSttusListThngPPSSrch", "kw": ["bizNm", "prdctClsfcNoNm"], "dates": "ym"},
 ]
@@ -466,15 +470,15 @@ BF = {
     "id": ["bidNtceNo", "bfSpecRgstNo", "untyCntrctNo", "dcsnCntrctNo", "cntrctNo", "orderPlanUntyNo", "orderPlanSno"],
     "ord": ["bidNtceOrd", "cntrctChgOrd"],
     "title": ["bidNtceNm", "cntrctNm", "bizNm", "prdctClsfcNoNm", "prcureNm"],
-    "date": ["bidNtceDt", "rcptDt", "rgstDt", "cntrctCnclsDate", "cntrctDate", "nticeDt", "orderYear"],
+    "date": ["fnlSucsfDate", "rlOpengDt", "bidNtceDt", "rcptDt", "rgstDt", "cntrctCnclsDate", "cntrctDate", "nticeDt", "orderYear"],
     "org": ["dminsttNm", "rlDminsttNm", "dmndInsttNm", "orderInsttNm", "cntrctInsttNm"],
     "notice_org": ["ntceInsttNm", "orderInsttNm", "cntrctInsttNm"],
     "org_div": ["dmndInsttDivNm", "cntrctInsttJrsdctnDivNm", "jrsdctnDivNm"],
-    "amount": ["presmptPrce", "asignBdgtAmt", "totCntrctAmt", "thtmCntrctAmt", "cntrctAmt", "sumOrderAmt", "orderContrctAmt"],
+    "amount": ["sucsfbidAmt", "presmptPrce", "asignBdgtAmt", "totCntrctAmt", "thtmCntrctAmt", "cntrctAmt", "sumOrderAmt", "orderContrctAmt"],
     "deadline": ["bidClseDt", "opninRgstClseDt"],
     "method": ["cntrctCnclsMthdNm", "cntrctMthdNm", "bidMethdNm"],
     "url": ["bidNtceDtlUrl", "bidNtceUrl", "cntrctDtlInfoUrl", "cntrctInfoUrl", "bfSpecDtlUrl", "specDocFileUrl1"],
-    "vendor": ["corpList", "cntrctCorpNm", "corpNm", "rprsntCorpNm"],
+    "vendor": ["bidwinnrNm", "corpList", "cntrctCorpNm", "corpNm", "rprsntCorpNm"],
     "dminstt_list": ["dminsttList"],
     "status": ["ntceKindNm", "bidNtceSttusNm"],
 }
@@ -547,6 +551,19 @@ def bids(max_minutes=20, months=6):
     wins = month_windows(start, end)
     info = {"feeds": {}, "errors": [], "stopped": ""}
 
+    state.setdefault("keyname", {})
+
+    def bcall(feed, params):
+        kn = state["keyname"].get(feed["id"], "serviceKey")
+        try:
+            return call(feed.get("use_op", feed["op"]), params, base=feed["base"], keyname=kn)
+        except RuntimeError as e:
+            if "403" not in str(e) or kn == "ServiceKey":
+                raise
+            r = call(feed.get("use_op", feed["op"]), params, base=feed["base"], keyname="ServiceKey")
+            state["keyname"][feed["id"]] = "ServiceKey"
+            return r
+
     VARIANTS = {"dt": ["dt"], "date": ["date", "dt", "date2", "both"], "ym": ["ym", "ymdt", "dt"]}
     state.setdefault("variant", {})
 
@@ -569,8 +586,7 @@ def bids(max_minutes=20, months=6):
     def fetch(feed, kwp, kw, a, b):
         page, got = 1, []
         while True:
-            items, total = call(feed["op"], {**dparams(feed, a, b), kwp: kw, "pageNo": page, "numOfRows": 100},
-                                base=feed["base"])
+            items, total = bcall(feed, {**dparams(feed, a, b), kwp: kw, "pageNo": page, "numOfRows": 100})
             got += items
             if page * 100 >= total or not items or page >= 5:
                 return got, total
@@ -586,11 +602,28 @@ def bids(max_minutes=20, months=6):
         # 조회 조건 후보 시험: 키워드를 넣었을 때 결과 수가 넣지 않았을 때보다 줄어야 유효
         if not kwp:
             a, b = wins[1] if len(wins) > 1 else wins[0]  # 지난달(자료 지연 영향 없음)
+            if feed["id"] == "cntrct_thng" and not state.get("cntrct_diag_done"):
+                diag = {}
+                for opn in ("getCntrctInfoListThngPPSSrch", "getCntrctInfoListThng"):
+                    for span in (1, 7):
+                        for v in ("date", "dt", "date2"):
+                            aa = b - dt.timedelta(days=span - 1)
+                            key = f"{opn}|{v}|{span}d"
+                            try:
+                                its, t = call(opn, {**dparams(feed, aa, b, v), "pageNo": 1, "numOfRows": 1}, base=feed["base"])
+                                diag[key] = t
+                                if t > 0 and "sample" not in diag:
+                                    diag["sample"] = its[0] if its else None
+                                    diag["sample_from"] = key
+                            except RuntimeError as e:
+                                diag[key] = str(e)[:90]
+                fi["diag"] = diag
+                state["cntrct_diag_done"] = 1
             try:
                 base_total, tried = 0, {}
                 for v in VARIANTS[feed["dates"]]:
                     try:
-                        _, t = call(feed["op"], {**dparams(feed, a, b, v), "pageNo": 1, "numOfRows": 1}, base=feed["base"])
+                        _, t = bcall(feed, {**dparams(feed, a, b, v), "pageNo": 1, "numOfRows": 1})
                     except RuntimeError as e:
                         if "429" in str(e) or "403" in str(e):
                             raise
@@ -606,8 +639,7 @@ def bids(max_minutes=20, months=6):
                     info["errors"].append(f'{feed["id"]}: 날짜 조건으로 조회되는 자료가 없음 {tried}')
                     continue
                 for cand in feed["kw"]:
-                    _, t = call(feed["op"], {**dparams(feed, a, b), cand: "불법촬영", "pageNo": 1, "numOfRows": 1},
-                                base=feed["base"])
+                    _, t = bcall(feed, {**dparams(feed, a, b), cand: "불법촬영", "pageNo": 1, "numOfRows": 1})
                     if t < base_total:
                         kwp = cand
                         break
