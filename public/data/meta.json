@@ -1,6 +1,6 @@
 {
   "sample": false,
-  "updated_at": "2026-11-22T11:27+09:00",
+  "updated_at": "2026-11-22T22:24+09:00",
   "data_through": "2026-11-21",
   "rows": 166,
   "target_rows": 138,
@@ -16,13 +16,13 @@
   "windows_done": 141,
   "windows_total": 141,
   "this_run": {
-    "ok": 141,
+    "ok": 9,
     "failed": 0,
     "stopped": "",
-    "minutes": 12.5,
-    "avg_ok_sec": 5.3
+    "minutes": 0.6,
+    "avg_ok_sec": 4.0
   },
   "errors": [],
   "unmapped_fields": [],
-  "api_calls": 141
+  "api_calls": 9
 }
