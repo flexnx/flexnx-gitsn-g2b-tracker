@@ -1,10 +1,10 @@
 {
   "sample": false,
-  "updated_at": "2026-11-21T19:09+09:00",
-  "data_through": "2026-11-20",
-  "rows": 0,
-  "target_rows": 0,
-  "earliest_date": null,
+  "updated_at": "2026-11-22T11:27+09:00",
+  "data_through": "2026-11-21",
+  "rows": 166,
+  "target_rows": 138,
+  "earliest_date": "2023-01-25",
   "company_names": [
     "지슨"
   ],
@@ -12,30 +12,17 @@
     "도청방지기",
     "불법촬영카메라탐지기"
   ],
-  "backfill_incomplete": true,
-  "windows_done": 0,
+  "backfill_incomplete": false,
+  "windows_done": 141,
   "windows_total": 141,
   "this_run": {
-    "ok": 0,
-    "failed": 12,
-    "stopped": "연속 12회 실패 — API 응답 없음",
-    "minutes": 0.5,
-    "avg_ok_sec": 0.0
+    "ok": 141,
+    "failed": 0,
+    "stopped": "",
+    "minutes": 12.5,
+    "avg_ok_sec": 5.3
   },
-  "errors": [
-    "prdctIdntNoNm=지슨 2026-11: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctClsfcNoNm=도청방지기 2026-11: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctClsfcNoNm=불법촬영카메라탐지기 2026-11: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctIdntNoNm=지슨 2026-10: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctClsfcNoNm=도청방지기 2026-10: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctClsfcNoNm=불법촬영카메라탐지기 2026-10: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctIdntNoNm=지슨 2026-09: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (0s)",
-    "prdctClsfcNoNm=도청방지기 2026-09: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctClsfcNoNm=불법촬영카메라탐지기 2026-09: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (1s)",
-    "prdctIdntNoNm=지슨 2026-08: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (0s)",
-    "prdctClsfcNoNm=도청방지기 2026-08: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (0s)",
-    "prdctClsfcNoNm=불법촬영카메라탐지기 2026-08: getDlvrReqDtlInfoList: 실패 HTTPError: HTTP Error 429: Too Many Requests (0s)"
-  ],
+  "errors": [],
   "unmapped_fields": [],
-  "api_calls": 12
+  "api_calls": 141
 }
