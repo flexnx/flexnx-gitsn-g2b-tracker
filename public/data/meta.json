@@ -1,6 +1,6 @@
 {
   "sample": false,
-  "updated_at": "2026-11-22T22:24+09:00",
+  "updated_at": "2026-11-22T22:41+09:00",
   "data_through": "2026-11-21",
   "rows": 166,
   "target_rows": 138,
@@ -20,7 +20,7 @@
     "failed": 0,
     "stopped": "",
     "minutes": 0.6,
-    "avg_ok_sec": 4.0
+    "avg_ok_sec": 4.1
   },
   "errors": [],
   "unmapped_fields": [],
