@@ -17,7 +17,7 @@
   "spec_thng": {
    "ok": 18,
    "failed": 0,
-   "rows": 3,
+   "rows": 4,
    "kw_param": "prdctClsfcNoNm",
    "keys": [
     "asignBdgtAmt",
@@ -46,27 +46,27 @@
    ],
    "first": {
     "bsnsDivNm": "물품",
-    "refNo": "안전관리팀-2731",
-    "prdctClsfcNoNm": "상시형 불법촬영카메라 탐지시스템",
-    "orderInsttNm": "조달청 대전지방조달청",
-    "rlDminsttNm": "한국기술교육대학교",
-    "asignBdgtAmt": "348939600",
-    "rcptDt": "2026-10-02 13:48:55",
-    "opninRgstClseDt": "2026-10-08 23:59:00",
-    "ofclTelNo": "070-4056-8362",
-    "ofclNm": "김현주",
+    "refNo": "안보수사지휘과-3650",
+    "prdctClsfcNoNm": "도청방지 장비 구매",
+    "orderInsttNm": "조달청 서울지방조달청",
+    "rlDminsttNm": "경찰청",
+    "asignBdgtAmt": "171884120",
+    "rcptDt": "2026-11-23 09:49:31",
+    "opninRgstClseDt": "2026-11-28 23:59:00",
+    "ofclTelNo": "070-4056-8751",
+    "ofclNm": "김경현",
     "swBizObjYn": "N",
     "dlvrTmlmtDt": "",
     "dlvrDaynum": "30",
-    "bfSpecRgstNo": "R26BD00280736",
-    "specDocFileUrl1": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00280736&fileType=BFDTL&fileSeq=1",
-    "specDocFileUrl2": "",
-    "specDocFileUrl3": "",
+    "bfSpecRgstNo": "R26BD00304534",
+    "specDocFileUrl1": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00304534&fileType=BFDTL&fileSeq=1",
+    "specDocFileUrl2": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00304534&fileType=BFDTL&fileSeq=2",
+    "specDocFileUrl3": "https://www.g2b.go.kr/pn/pnz/pnza/UntyAtchFile/downloadFile.do?bfSpecRegNo=R26BD00304534&fileType=BFDTL&fileSeq=3",
     "specDocFileUrl4": "",
     "specDocFileUrl5": "",
-    "prdctDtlList": "[1^4617166801^불법촬영카메라탐지기]",
-    "rgstDt": "2026-10-02 13:48:54",
-    "chgDt": "2026-10-02 13:48:55",
+    "prdctDtlList": "[1^4322152701^도청방지기],[2^4322152701^도청방지기]",
+    "rgstDt": "2026-11-23 09:49:29",
+    "chgDt": "2026-11-23 09:49:31",
     "bidNtceNoList": ""
    }
   },
@@ -163,15 +163,15 @@
  },
  "errors": [
   "bid_thng 시험: getBidPblancListInfoThngPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (0s)",
-  "bid_servc 시험: getBidPblancListInfoServcPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (1s)",
+  "bid_servc 시험: getBidPblancListInfoServcPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (0s)",
   "cntrct_thng: 날짜 조건으로 조회되는 자료가 없음 {'date': 0, 'dt': 0, 'date2': 0, 'both': 0}",
   "award_thng 시험: getScsbidListSttusThngPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (0s)",
   "award_servc 시험: getScsbidListSttusServcPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (0s)"
  ],
  "stopped": "",
- "rows": 7,
+ "rows": 8,
  "api_calls": 66,
- "minutes": 0.8,
+ "minutes": 0.7,
  "keywords": [
   "불법촬영",
   "불법카메라",
@@ -183,5 +183,5 @@
   "부정행위",
   "백도어"
  ],
- "updated_at": "2026-11-22T22:41+09:00"
+ "updated_at": "2026-11-23T11:47+09:00"
 }
