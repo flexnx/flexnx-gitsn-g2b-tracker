@@ -1,8 +1,8 @@
 {
   "sample": false,
-  "updated_at": "2026-11-23T11:46+09:00",
-  "data_through": "2026-11-22",
-  "rows": 166,
+  "updated_at": "2026-11-24T15:05+09:00",
+  "data_through": "2026-11-23",
+  "rows": 167,
   "target_rows": 138,
   "earliest_date": "2023-01-25",
   "company_names": [
@@ -19,8 +19,8 @@
     "ok": 9,
     "failed": 0,
     "stopped": "",
-    "minutes": 0.6,
-    "avg_ok_sec": 4.1
+    "minutes": 1.3,
+    "avg_ok_sec": 8.6
   },
   "errors": [],
   "unmapped_fields": [],
