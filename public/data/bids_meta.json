@@ -163,7 +163,7 @@
  },
  "errors": [
   "bid_thng 시험: getBidPblancListInfoThngPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (0s)",
-  "bid_servc 시험: getBidPblancListInfoServcPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (1s)",
+  "bid_servc 시험: getBidPblancListInfoServcPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (0s)",
   "cntrct_thng: 날짜 조건으로 조회되는 자료가 없음 {'date': 0, 'dt': 0, 'date2': 0, 'both': 0}",
   "award_thng 시험: getScsbidListSttusThngPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (0s)",
   "award_servc 시험: getScsbidListSttusServcPPSSrch: 실패 HTTPError: HTTP Error 403: Forbidden (0s)"
@@ -171,7 +171,7 @@
  "stopped": "",
  "rows": 8,
  "api_calls": 66,
- "minutes": 0.9,
+ "minutes": 0.7,
  "keywords": [
   "불법촬영",
   "불법카메라",
@@ -183,5 +183,5 @@
   "부정행위",
   "백도어"
  ],
- "updated_at": "2026-11-24T15:06+09:00"
+ "updated_at": "2026-11-25T13:55+09:00"
 }
