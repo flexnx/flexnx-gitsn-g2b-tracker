@@ -1,7 +1,7 @@
 {
   "sample": false,
-  "updated_at": "2026-11-25T13:54+09:00",
-  "data_through": "2026-11-24",
+  "updated_at": "2026-11-26T13:10+09:00",
+  "data_through": "2026-11-25",
   "rows": 168,
   "target_rows": 138,
   "earliest_date": "2023-01-25",
@@ -19,8 +19,8 @@
     "ok": 9,
     "failed": 0,
     "stopped": "",
-    "minutes": 0.7,
-    "avg_ok_sec": 4.8
+    "minutes": 0.6,
+    "avg_ok_sec": 4.2
   },
   "errors": [],
   "unmapped_fields": [],
