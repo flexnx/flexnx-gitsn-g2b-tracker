@@ -1,9 +1,9 @@
 {
   "sample": false,
-  "updated_at": "2026-11-27T13:16+09:00",
-  "data_through": "2026-11-26",
-  "rows": 169,
-  "target_rows": 138,
+  "updated_at": "2026-11-28T12:55+09:00",
+  "data_through": "2026-11-27",
+  "rows": 170,
+  "target_rows": 139,
   "earliest_date": "2023-01-25",
   "company_names": [
     "지슨"
@@ -19,8 +19,8 @@
     "ok": 9,
     "failed": 0,
     "stopped": "",
-    "minutes": 0.6,
-    "avg_ok_sec": 4.2
+    "minutes": 1.0,
+    "avg_ok_sec": 6.6
   },
   "errors": [],
   "unmapped_fields": [],
